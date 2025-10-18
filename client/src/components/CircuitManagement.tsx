@@ -199,8 +199,8 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
       toggleSplicedMutation.mutate({
         circuitId: circuit.id,
         feedCableId: feedCable?.id,
-        feedFiberStart: circuit.fiberStart,
-        feedFiberEnd: circuit.fiberEnd,
+        feedFiberStart: matchingFeedCircuit.fiberStart,
+        feedFiberEnd: matchingFeedCircuit.fiberEnd,
       });
     } else {
       // Unchecking - just toggle without feed cable info
@@ -329,7 +329,7 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
   }, [circuits]);
 
   const validationStatus = useMemo(() => {
-    return totalAssignedFibers <= cable.fiberCount;
+    return totalAssignedFibers === cable.fiberCount;
   }, [totalAssignedFibers, cable.fiberCount]);
 
   const getRibbonAndStrandDisplay = (fiberStart: number, fiberEnd: number, ribbonSize: number) => {

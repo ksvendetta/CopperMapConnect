@@ -163,7 +163,7 @@ export default function Home() {
                         const totalAssignedFibers = cableCircuits.reduce((sum, circuit) => {
                           return sum + (circuit.fiberEnd - circuit.fiberStart + 1);
                         }, 0);
-                        const isValid = totalAssignedFibers <= cable.fiberCount;
+                        const isValid = totalAssignedFibers === cable.fiberCount;
                         
                         return (
                           <CableCard

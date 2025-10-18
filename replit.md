@@ -61,7 +61,7 @@ Preferred communication style: Simple, everyday language.
 - InputData tab features cable list, cable details, circuit management, and splice checkboxes.
 - Splice tab features a three-row header with "Feed" and "Distribution" sections and detailed, color-coded individual fiber mapping.
 - **Label Usage:** Cable details section shows "Cable Size: X", Circuit management header shows "Fiber Count: X/Y" (X assigned out of Y total).
-- **Pass/Fail Status:** Both cable cards and circuit details use consistent logic (assigned fibers ≤ cable capacity = Pass, assigned > capacity = Fail).
+- **Pass/Fail Status:** Both cable cards and circuit details use consistent logic (Pass only when ALL fibers are assigned: assigned fibers === cable capacity).
 - Responsive design with a professional technical interface.
 
 ## External Dependencies
