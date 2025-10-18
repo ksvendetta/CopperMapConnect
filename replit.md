@@ -119,15 +119,16 @@ Preferred communication style: Simple, everyday language.
 - Automatic schema migrations with Drizzle Kit
 - UUID-based primary keys for all records
 
-### Checkbox-Based Splicing System with Feed Cable Mapping
-- Simple checkbox interface to mark Distribution circuits as "spliced" and map to Feed cables
+### Checkbox-Based Splicing System with Automatic Circuit Matching
+- Simple checkbox interface to mark Distribution circuits as "spliced" and automatically map to Feed cables
 - Only Distribution cables show splice checkboxes (Feed cables do not)
-- Clicking checkbox opens dialog to select Feed cable and specify fiber range:
-  - Feed Cable selection (dropdown showing all Feed cables)
-  - Feed Ribbon number (1, 2, etc.)
-  - Feed Strand range (1-12 within the ribbon)
-- System calculates feed fiber numbers from ribbon and strand inputs
-- feedCableId, feedFiberStart, and feedFiberEnd stored in circuits table
+- **Fully Automatic Matching**: Clicking checkbox automatically searches all Feed cables for a circuit with the same circuit ID
+  - No manual dialog or selection required
+  - System finds Feed circuit with matching circuitId
+  - Automatically extracts Feed cable's ID and fiber positions (fiberStart, fiberEnd)
+  - Creates splice mapping with one click
+- Error handling: Shows toast message if no matching Feed circuit is found
+- feedCableId, feedFiberStart, and feedFiberEnd automatically stored in circuits table
 - Splice tab displays individual fiber mappings (one row per fiber):
   - Feed Cable fiber count | Feed Ribbon | Feed Strand (color-coded)
   - Circuit ID (e.g., lg,33)
@@ -163,15 +164,19 @@ Preferred communication style: Simple, everyday language.
   - Table header uses color accents to distinguish Feed vs Distribution sections
 - Circuit display in InputData uses ribbon and strand format (e.g., "R1: 1-4") instead of raw fiber ranges
 - Responsive design with professional technical interface
-- Feed cable selection dialog with inputs for:
-  - Feed Cable (dropdown)
-  - Feed Ribbon (number input)
-  - Feed Strand Start and End (number inputs, 1-12)
+- **No manual dialogs**: Automatic circuit matching eliminates need for manual feed cable selection
 
 ## Recent Changes (October 18, 2025)
+- **Automatic Circuit Matching** (Latest):
+  - Removed manual Feed cable selection dialog completely
+  - Implemented fully automatic circuit matching when Distribution circuit checkbox is clicked
+  - System automatically searches all Feed cables for circuit with matching circuitId
+  - Extracts Feed cable ID and fiber positions automatically from matching circuit
+  - One-click splicing with zero manual input required
+  - Error toast displayed if no matching Feed circuit exists
+  - Updated splicedCircuits filter to only display Distribution circuits (not Feed circuits) in Splice tab
 - **Individual Fiber Mapping with Color Coding**:
   - Added feedFiberStart and feedFiberEnd fields to circuits table to track specific feed fiber positions
-  - Updated Feed selection dialog to ask for Feed Ribbon and Strand range (not just cable)
   - Implemented fiber position calculation: (ribbon - 1) * 12 + strand = fiber number
   - Redesigned Splice tab to show individual fiber mappings (one row per fiber, not per circuit)
   - Added industry-standard fiber optic color coding (12 colors based on strand position)
