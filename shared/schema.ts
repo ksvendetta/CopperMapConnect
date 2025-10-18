@@ -31,12 +31,14 @@ export const cables = pgTable("cables", {
 });
 
 // Circuits table - represents circuit IDs and fiber assignments within a cable
+// fiberStart and fiberEnd are auto-calculated based on circuit order
 export const circuits = pgTable("circuits", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   cableId: varchar("cable_id").notNull(),
   circuitId: text("circuit_id").notNull(),
-  fiberStart: integer("fiber_start").notNull(),
-  fiberEnd: integer("fiber_end").notNull(),
+  position: integer("position").notNull(), // Order in the cable (0-indexed)
+  fiberStart: integer("fiber_start").notNull(), // Auto-calculated
+  fiberEnd: integer("fiber_end").notNull(), // Auto-calculated
 });
 
 // Splice table - represents a connection between fibers of two cables
@@ -57,13 +59,11 @@ export const splices = pgTable("splices", {
 
 // Insert schemas
 export const insertCableSchema = createInsertSchema(cables).omit({ id: true });
-export const insertCircuitSchema = createInsertSchema(circuits).omit({ id: true }).refine(
-  (data) => data.fiberStart <= data.fiberEnd,
-  {
-    message: "Start fiber must be less than or equal to end fiber",
-    path: ["fiberEnd"],
-  }
-);
+export const insertCircuitSchema = createInsertSchema(circuits).omit({ 
+  id: true,
+  fiberStart: true, // Auto-calculated
+  fiberEnd: true, // Auto-calculated
+});
 export const insertSpliceSchema = createInsertSchema(splices).omit({ id: true }).refine(
   (data) => data.sourceStartFiber <= data.sourceEndFiber,
   {
@@ -109,4 +109,16 @@ export function getRibbonNumber(fiberNumber: number, ribbonSize: number = 12): n
 // Helper to get position within ribbon (0-11)
 export function getFiberPositionInRibbon(fiberNumber: number, ribbonSize: number = 12): number {
   return ((fiberNumber - 1) % ribbonSize);
+}
+
+// Helper to parse circuit ID and extract fiber count
+// Examples: "lg,33-36" = 4 fibers, "b,1-2" = 2 fibers, "ks,219-228" = 10 fibers
+export function parseCircuitId(circuitId: string): number {
+  const match = circuitId.match(/(\d+)-(\d+)$/);
+  if (!match) {
+    throw new Error(`Invalid circuit ID format: ${circuitId}`);
+  }
+  const start = parseInt(match[1], 10);
+  const end = parseInt(match[2], 10);
+  return end - start + 1;
 }

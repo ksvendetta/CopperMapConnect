@@ -1,6 +1,6 @@
 import { cables, circuits, splices, type Cable, type InsertCable, type Circuit, type InsertCircuit, type Splice, type InsertSplice } from "@shared/schema";
 import { db } from "./db";
-import { eq, or } from "drizzle-orm";
+import { eq, or, asc } from "drizzle-orm";
 
 export interface IStorage {
   getAllCables(): Promise<Cable[]>;
@@ -75,7 +75,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCircuitsByCableId(cableId: string): Promise<Circuit[]> {
-    return await db.select().from(circuits).where(eq(circuits.cableId, cableId));
+    return await db.select().from(circuits).where(eq(circuits.cableId, cableId)).orderBy(asc(circuits.position));
   }
 
   async getCircuit(id: string): Promise<Circuit | undefined> {
@@ -83,12 +83,13 @@ export class DatabaseStorage implements IStorage {
     return circuit || undefined;
   }
 
-  async createCircuit(insertCircuit: InsertCircuit): Promise<Circuit> {
+  async createCircuit(insertCircuit: InsertCircuit & { position: number; fiberStart: number; fiberEnd: number }): Promise<Circuit> {
     const [circuit] = await db
       .insert(circuits)
       .values({
         cableId: insertCircuit.cableId,
         circuitId: insertCircuit.circuitId,
+        position: insertCircuit.position,
         fiberStart: insertCircuit.fiberStart,
         fiberEnd: insertCircuit.fiberEnd,
       })

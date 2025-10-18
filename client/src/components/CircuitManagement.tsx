@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Circuit, Cable, InsertCircuit } from "@shared/schema";
+import { Circuit, Cable, InsertCircuit, getRibbonNumber, getFiberPositionInRibbon } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,8 +25,6 @@ interface CircuitManagementProps {
 export function CircuitManagement({ cable }: CircuitManagementProps) {
   const { toast } = useToast();
   const [circuitId, setCircuitId] = useState("");
-  const [fiberStart, setFiberStart] = useState("");
-  const [fiberEnd, setFiberEnd] = useState("");
 
   const { data: circuits = [], isLoading } = useQuery<Circuit[]>({
     queryKey: ["/api/circuits/cable", cable.id],
@@ -44,8 +42,6 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/circuits/cable", cable.id] });
       setCircuitId("");
-      setFiberStart("");
-      setFiberEnd("");
       toast({ title: "Circuit added successfully" });
     },
     onError: (error: any) => {
@@ -71,22 +67,10 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
   });
 
   const handleAddCircuit = () => {
-    if (!circuitId.trim() || !fiberStart || !fiberEnd) {
+    if (!circuitId.trim()) {
       toast({
-        title: "Missing fields",
-        description: "Please fill in all circuit fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const start = parseInt(fiberStart);
-    const end = parseInt(fiberEnd);
-
-    if (isNaN(start) || isNaN(end) || start < 1 || end > cable.fiberCount || start > end) {
-      toast({
-        title: "Invalid fiber range",
-        description: `Fibers must be between 1 and ${cable.fiberCount}`,
+        title: "Missing circuit ID",
+        description: "Please enter a circuit ID (e.g., lg,33-36)",
         variant: "destructive",
       });
       return;
@@ -95,8 +79,6 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
     createCircuitMutation.mutate({
       cableId: cable.id,
       circuitId: circuitId.trim(),
-      fiberStart: start,
-      fiberEnd: end,
     });
   };
 
@@ -136,8 +118,8 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-12 gap-2">
-          <div className="col-span-5">
+        <div className="flex gap-2">
+          <div className="flex-1">
             <Label htmlFor="circuitId" className="text-xs">
               Circuit ID
             </Label>
@@ -146,43 +128,15 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
               data-testid="input-circuit-id"
               value={circuitId}
               onChange={(e) => setCircuitId(e.target.value)}
-              placeholder="e.g., b,1-2"
+              onKeyDown={(e) => e.key === "Enter" && handleAddCircuit()}
+              placeholder="e.g., lg,33-36"
               className="text-sm"
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              Fiber positions auto-calculated from circuit order
+            </p>
           </div>
-          <div className="col-span-3">
-            <Label htmlFor="fiberStart" className="text-xs">
-              Fiber Start
-            </Label>
-            <Input
-              id="fiberStart"
-              data-testid="input-fiber-start"
-              type="number"
-              value={fiberStart}
-              onChange={(e) => setFiberStart(e.target.value)}
-              placeholder="1"
-              min="1"
-              max={cable.fiberCount}
-              className="text-sm"
-            />
-          </div>
-          <div className="col-span-3">
-            <Label htmlFor="fiberEnd" className="text-xs">
-              Fiber End
-            </Label>
-            <Input
-              id="fiberEnd"
-              data-testid="input-fiber-end"
-              type="number"
-              value={fiberEnd}
-              onChange={(e) => setFiberEnd(e.target.value)}
-              placeholder={cable.fiberCount.toString()}
-              min="1"
-              max={cable.fiberCount}
-              className="text-sm"
-            />
-          </div>
-          <div className="col-span-1 flex items-end">
+          <div className="flex items-end">
             <Button
               size="icon"
               data-testid="button-add-circuit"
@@ -199,33 +153,48 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[40%]">Circuit ID</TableHead>
-                  <TableHead className="w-[45%]">Fiber Range</TableHead>
+                  <TableHead className="w-[35%]">Circuit ID</TableHead>
+                  <TableHead className="w-[50%]">Fiber Strands</TableHead>
                   <TableHead className="w-[15%] text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {circuits.map((circuit) => (
-                  <TableRow key={circuit.id} data-testid={`row-circuit-${circuit.id}`}>
-                    <TableCell className="font-mono text-sm" data-testid={`text-circuit-id-${circuit.id}`}>
-                      {circuit.circuitId}
-                    </TableCell>
-                    <TableCell className="font-mono text-sm" data-testid={`text-fiber-range-${circuit.id}`}>
-                      {circuit.fiberStart}-{circuit.fiberEnd} ({circuit.fiberEnd - circuit.fiberStart + 1} fibers)
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        data-testid={`button-delete-circuit-${circuit.id}`}
-                        onClick={() => deleteCircuitMutation.mutate(circuit.id)}
-                        disabled={deleteCircuitMutation.isPending}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {circuits.map((circuit) => {
+                  const fiberCount = circuit.fiberEnd - circuit.fiberStart + 1;
+                  const startRibbon = getRibbonNumber(circuit.fiberStart, cable.ribbonSize);
+                  const endRibbon = getRibbonNumber(circuit.fiberEnd, cable.ribbonSize);
+                  const startPos = getFiberPositionInRibbon(circuit.fiberStart, cable.ribbonSize) + 1;
+                  const endPos = getFiberPositionInRibbon(circuit.fiberEnd, cable.ribbonSize) + 1;
+                  
+                  let ribbonDisplay = "";
+                  if (startRibbon === endRibbon) {
+                    ribbonDisplay = `R${startRibbon}: ${startPos}-${endPos}`;
+                  } else {
+                    ribbonDisplay = `R${startRibbon}: ${startPos}-${cable.ribbonSize} and R${endRibbon}: 1-${endPos}`;
+                  }
+                  
+                  return (
+                    <TableRow key={circuit.id} data-testid={`row-circuit-${circuit.id}`}>
+                      <TableCell className="font-mono text-sm" data-testid={`text-circuit-id-${circuit.id}`}>
+                        {circuit.circuitId}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm" data-testid={`text-fiber-range-${circuit.id}`}>
+                        {ribbonDisplay}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          data-testid={`button-delete-circuit-${circuit.id}`}
+                          onClick={() => deleteCircuitMutation.mutate(circuit.id)}
+                          disabled={deleteCircuitMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
