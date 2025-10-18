@@ -45,6 +45,8 @@ export const circuits = pgTable("circuits", {
   fiberEnd: integer("fiber_end").notNull(), // Auto-calculated
   isSpliced: integer("is_spliced").notNull().default(0), // 0 = not spliced, 1 = spliced
   feedCableId: varchar("feed_cable_id"), // For Distribution cables: which Feed cable this maps to
+  feedFiberStart: integer("feed_fiber_start"), // Which fiber in feed cable (start)
+  feedFiberEnd: integer("feed_fiber_end"), // Which fiber in feed cable (end)
 });
 
 // Splice table - represents a connection between fibers of two cables
