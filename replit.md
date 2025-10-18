@@ -31,6 +31,7 @@ Preferred communication style: Simple, everyday language.
 **Database Schema:**
 - **Cables Table:** `id` (UUID), `name`, `fiberCount`, `ribbonSize` (12), `type` ("Feed" or "Distribution").
 - **Circuits Table:** `cableId`, `circuitId`, `position`, `fiberStart`, `fiberEnd`, `isSpliced` (0/1), `feedCableId` (UUID, nullable), `feedFiberStart` (nullable), `feedFiberEnd` (nullable).
+- **Saves Table:** `id` (UUID), `name` (date/time stamp), `createdAt` (timestamp), `data` (JSON string containing cables and circuits).
 - UUID primary keys, cascade deletion for cables and associated circuits.
 **Storage Abstraction:** `IStorage` interface with `DatabaseStorage` implementation using Drizzle ORM.
 
@@ -52,7 +53,13 @@ Preferred communication style: Simple, everyday language.
   - **Fiber View:** When any circuit uses partial ribbons, displays individual fiber mappings (one row per fiber) with color-coded strand numbers.
 **Pass/Fail Status Badges:** Cables and circuits display green "Pass" badges when total assigned fibers are within cable capacity, or red "Fail" badges when exceeded.
 **Delete Cable:** Immediate deletion without confirmation dialog.
-**Reset All Data:** Red "Reset" button in upper right corner of header allows clearing all cables, circuits, and splices with confirmation dialog for starting fresh.
+**Save/Load System with Auto-Save:** 
+- "Start New" button in header replaces "Reset" button - auto-saves current project with date/time stamp before clearing all data
+- "History" button opens dialog showing all saved projects (max 50 saves)
+- Date/time stamped saves automatically generated (format: MM/DD/YYYY HH:MM:SS)
+- Oldest saves automatically deleted when 50-save limit is reached
+- One-click load from History dialog restores complete project state (cables and circuits)
+- Saves stored in PostgreSQL database (`saves` table with id, name, createdAt, data fields)
 **Circuit ID Management (Auto-Calculated Fiber Positions with Edit and Reorder):**
 - Simplified input: `circuitId` is the only required input.
 - Inline editing of circuit IDs with automatic recalculation of fiber positions.
