@@ -47,10 +47,11 @@ Preferred communication style: Simple, everyday language.
 - RESTful endpoints under `/api` prefix
 - CRUD operations for cables: GET /api/cables, GET /api/cables/:id, POST /api/cables, PUT /api/cables/:id, DELETE /api/cables/:id
 - Circuit operations: GET /api/circuits, GET /api/circuits/cable/:cableId, PATCH /api/circuits/:id/toggle-spliced, DELETE /api/circuits/:id
-- Toggle splice status: PATCH /api/circuits/:id/toggle-spliced - Toggles the isSpliced boolean field and stores feedCableId
-  - Request body: `{ feedCableId: "uuid" }` (required when splicing, optional when unsplicing)
-  - When isSpliced set to 1, feedCableId is required and stored
-  - When isSpliced set to 0, feedCableId is cleared
+- Toggle splice status: PATCH /api/circuits/:id/toggle-spliced - Toggles the isSpliced boolean field and stores feed cable mapping
+  - Request body: `{ feedCableId: "uuid", feedFiberStart: 21, feedFiberEnd: 24 }` (all required when splicing, optional when unsplicing)
+  - When isSpliced set to 1, feedCableId, feedFiberStart, and feedFiberEnd are required and stored
+  - When isSpliced set to 0, all feed-related fields are cleared
+  - feedFiberStart/End are calculated from ribbon and strand: (ribbon - 1) * 12 + strand
 - Request validation using Zod schemas derived from Drizzle ORM schema definitions
 - JSON request/response format with appropriate HTTP status codes
 
@@ -68,18 +69,19 @@ Preferred communication style: Simple, everyday language.
 
 **Database Schema**
 - **Cables Table**: Stores cable definitions with id (UUID), name, fiberCount, ribbonSize (always 12, not exposed in UI), and type (restricted to "Feed" or "Distribution")
-- **Circuits Table**: Stores circuit ID assignments and fiber allocations within each cable (cableId, circuitId, position, fiberStart, fiberEnd - all auto-calculated, isSpliced - integer 0/1, feedCableId - UUID reference to cables table, nullable)
+- **Circuits Table**: Stores circuit ID assignments and fiber allocations within each cable (cableId, circuitId, position, fiberStart, fiberEnd - all auto-calculated, isSpliced - integer 0/1, feedCableId - UUID reference to cables table, nullable, feedFiberStart - integer, nullable, feedFiberEnd - integer, nullable)
 - UUID primary keys using PostgreSQL's gen_random_uuid()
 - Integer-based boolean for isSpliced field (0/1) for database compatibility
 - feedCableId field tracks which Feed cable a Distribution circuit is spliced to
+- feedFiberStart and feedFiberEnd track which specific fibers in the Feed cable are mapped to this Distribution circuit
 
 **Storage Abstraction**
 - IStorage interface defining all data operations for cables and circuits
 - DatabaseStorage class implementing PostgreSQL-backed persistent storage via Drizzle ORM
 - Cascade deletion support (deleting a cable removes associated circuits)
-- toggleCircuitSpliced method for updating isSpliced boolean field and feedCableId
-- When splicing (isSpliced set to 1), feedCableId is stored
-- When unsplicing (isSpliced set to 0), feedCableId is cleared (set to null)
+- toggleCircuitSpliced method for updating isSpliced boolean field, feedCableId, feedFiberStart, and feedFiberEnd
+- When splicing (isSpliced set to 1), feedCableId, feedFiberStart, and feedFiberEnd are stored
+- When unsplicing (isSpliced set to 0), all feed-related fields are cleared (set to null)
 
 ### External Dependencies
 
@@ -120,15 +122,20 @@ Preferred communication style: Simple, everyday language.
 ### Checkbox-Based Splicing System with Feed Cable Mapping
 - Simple checkbox interface to mark Distribution circuits as "spliced" and map to Feed cables
 - Only Distribution cables show splice checkboxes (Feed cables do not)
-- Clicking checkbox opens dialog to select which Feed cable the Distribution circuit splices to
-- Dialog displays all Feed cables with fiber count for selection
-- feedCableId stored in circuits table to track Feed-to-Distribution mapping
-- Splice tab displays three-column layout showing:
-  - Feed Cable name (left column)
-  - Circuit ID prefix and fiber count (center column)
-  - Distribution Cable name with ribbon/strand format (right column)
+- Clicking checkbox opens dialog to select Feed cable and specify fiber range:
+  - Feed Cable selection (dropdown showing all Feed cables)
+  - Feed Ribbon number (1, 2, etc.)
+  - Feed Strand range (1-12 within the ribbon)
+- System calculates feed fiber numbers from ribbon and strand inputs
+- feedCableId, feedFiberStart, and feedFiberEnd stored in circuits table
+- Splice tab displays individual fiber mappings (one row per fiber):
+  - Feed Cable fiber count | Feed Ribbon | Feed Strand (color-coded)
+  - Circuit ID (e.g., lg,33)
+  - Distribution Strand (color-coded) | Distribution Ribbon | Distribution Cable fiber count
+- Industry-standard fiber optic color coding (12 colors: blue, orange, green, brown, slate, white, red, black, yellow, violet, pink, aqua)
+- Colors repeat every 12 strands based on strand position within ribbon
 - Real-time updates when toggling splice status
-- Unchecking removes feedCableId and circuit from Splice tab
+- Unchecking removes feedCableId, feedFiberStart, feedFiberEnd and circuit from Splice tab
 
 ### Cable Search
 - **Cable Search**: Real-time search by cable name or type
@@ -150,21 +157,33 @@ Preferred communication style: Simple, everyday language.
 ### User Interface
 - Two main tabs: **InputData** (for managing cables and circuits) and **Splice** (for viewing splice mappings)
 - InputData tab: Cable list with search, cable details, and circuit management with splice checkboxes for Distribution cables
-- Splice tab: Three-column table showing Feed cable | Circuit info | Distribution cable with ribbon/strand details
-- Circuit display uses ribbon and strand format (e.g., "R1: 1-4") instead of raw fiber ranges
+- Splice tab: Individual fiber mapping table (one row per fiber) with 7 columns:
+  - Feed Cable | Feed Ribbon | Feed Strand (color-coded) | Circuit | Distribution Strand (color-coded) | Distribution Ribbon | Distribution Cable
+  - Each strand colored with industry-standard fiber optic colors
+  - Table header uses color accents to distinguish Feed vs Distribution sections
+- Circuit display in InputData uses ribbon and strand format (e.g., "R1: 1-4") instead of raw fiber ranges
 - Responsive design with professional technical interface
-- Feed cable selection dialog for creating splice mappings
+- Feed cable selection dialog with inputs for:
+  - Feed Cable (dropdown)
+  - Feed Ribbon (number input)
+  - Feed Strand Start and End (number inputs, 1-12)
 
 ## Recent Changes (October 18, 2025)
+- **Individual Fiber Mapping with Color Coding**:
+  - Added feedFiberStart and feedFiberEnd fields to circuits table to track specific feed fiber positions
+  - Updated Feed selection dialog to ask for Feed Ribbon and Strand range (not just cable)
+  - Implemented fiber position calculation: (ribbon - 1) * 12 + strand = fiber number
+  - Redesigned Splice tab to show individual fiber mappings (one row per fiber, not per circuit)
+  - Added industry-standard fiber optic color coding (12 colors based on strand position)
+  - Each fiber displays with colored chip matching its strand position color
+  - Table shows: Feed Cable | Ribbon | Strand (colored) | Circuit | Strand (colored) | Ribbon | Distribution Cable
+  - Updated toggle-spliced API to accept and store feedFiberStart and feedFiberEnd
+  - Storage layer now manages feed fiber range along with feedCableId
 - **Major Simplification - Checkbox-Based Splicing with Feed Cable Mapping**:
   - Replaced complex splice entity system with simple checkbox-based approach
   - Removed splice tables, forms, connections visualization, and related components
   - Added isSpliced boolean field (0/1) to circuits table
-  - Added feedCableId field to circuits table to track Feed-to-Distribution splice mappings
-  - Implemented POST /api/circuits/:id/toggle-spliced endpoint accepting feedCableId parameter
   - Updated CircuitManagement component to show checkboxes only for Distribution cables
-  - Added Feed cable selection dialog that appears when marking Distribution circuit as spliced
-  - Redesigned Splice tab with three-column layout: Feed Cable | Circuit Info | Distribution Cable
   - Circuit display now shows ribbon and strand format (e.g., "R1: 1-4" or "R1:9-12 / R2:1-2")
   - Changed UI labels from "Spliced" to "Splice"
 - **Auto-Calculated Circuit Management**:
