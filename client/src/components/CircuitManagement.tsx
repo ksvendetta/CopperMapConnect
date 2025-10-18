@@ -372,7 +372,7 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
         if (firstFullRibbon === lastFullRibbon) {
           parts.push(`R${firstFullRibbon}`);
         } else {
-          parts.push(`R${firstFullRibbon}-${lastFullRibbon}`);
+          parts.push(`R${firstFullRibbon}-R${lastFullRibbon}`);
         }
       }
       
