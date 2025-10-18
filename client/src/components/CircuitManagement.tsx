@@ -335,6 +335,24 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
     return totalAssignedFibers === cable.fiberCount;
   }, [totalAssignedFibers, cable.fiberCount]);
 
+  // Fiber optic color codes (12 colors, repeating pattern)
+  const fiberColors = [
+    { name: "blue", bg: "bg-blue-500", text: "text-white" },
+    { name: "orange", bg: "bg-orange-500", text: "text-white" },
+    { name: "green", bg: "bg-green-600", text: "text-white" },
+    { name: "brown", bg: "bg-amber-700", text: "text-white" },
+    { name: "slate", bg: "bg-slate-500", text: "text-white" },
+    { name: "white", bg: "bg-white", text: "text-black" },
+    { name: "red", bg: "bg-red-600", text: "text-white" },
+    { name: "black", bg: "bg-black", text: "text-white" },
+    { name: "yellow", bg: "bg-yellow-400", text: "text-black" },
+    { name: "violet", bg: "bg-purple-600", text: "text-white" },
+    { name: "pink", bg: "bg-pink-500", text: "text-white" },
+    { name: "aqua", bg: "bg-cyan-400", text: "text-black" },
+  ];
+
+  const getColorForNumber = (num: number) => fiberColors[(num - 1) % 12];
+
   const getRibbonAndStrandDisplay = (fiberStart: number, fiberEnd: number, ribbonSize: number) => {
     const startRibbon = Math.ceil(fiberStart / ribbonSize);
     const endRibbon = Math.ceil(fiberEnd / ribbonSize);
@@ -342,13 +360,39 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
     const startStrand = ((fiberStart - 1) % ribbonSize) + 1;
     const endStrand = ((fiberEnd - 1) % ribbonSize) + 1;
     
+    const ColoredRibbon = ({ num }: { num: number }) => {
+      const color = getColorForNumber(num);
+      return (
+        <span className={`inline-block px-2 py-0.5 rounded border border-black ${color.bg} ${color.text} font-mono font-semibold text-xs`}>
+          R{num}
+        </span>
+      );
+    };
+    
+    const ColoredStrand = ({ num }: { num: number }) => {
+      const color = getColorForNumber(num);
+      return (
+        <span className={`inline-block px-2 py-0.5 rounded border border-black ${color.bg} ${color.text} font-mono font-semibold text-xs`}>
+          {num}
+        </span>
+      );
+    };
+    
     if (startRibbon === endRibbon) {
       // Single ribbon
       if (startStrand === 1 && endStrand === ribbonSize) {
         // Full ribbon, just show R1
-        return `R${startRibbon}`;
+        return <ColoredRibbon num={startRibbon} />;
       }
-      return `R${startRibbon}:${startStrand}-${endStrand}`;
+      return (
+        <span className="flex items-center gap-1">
+          <ColoredRibbon num={startRibbon} />
+          <span>:</span>
+          <ColoredStrand num={startStrand} />
+          <span>-</span>
+          <ColoredStrand num={endStrand} />
+        </span>
+      );
     } else {
       // Multiple ribbons
       const parts = [];
@@ -360,7 +404,15 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
       
       if (startsWithPartialRibbon) {
         // First ribbon is partial
-        parts.push(`R${startRibbon}:${startStrand}-${ribbonSize}`);
+        parts.push(
+          <span key={`start-${startRibbon}`} className="flex items-center gap-1">
+            <ColoredRibbon num={startRibbon} />
+            <span>:</span>
+            <ColoredStrand num={startStrand} />
+            <span>-</span>
+            <ColoredStrand num={ribbonSize} />
+          </span>
+        );
       }
       
       // Determine the range of full ribbons
@@ -370,18 +422,41 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
       // Add full ribbons as a range
       if (firstFullRibbon <= lastFullRibbon) {
         if (firstFullRibbon === lastFullRibbon) {
-          parts.push(`R${firstFullRibbon}`);
+          parts.push(<ColoredRibbon key={`full-${firstFullRibbon}`} num={firstFullRibbon} />);
         } else {
-          parts.push(`R${firstFullRibbon}-R${lastFullRibbon}`);
+          parts.push(
+            <span key={`range-${firstFullRibbon}-${lastFullRibbon}`} className="flex items-center gap-1">
+              <ColoredRibbon num={firstFullRibbon} />
+              <span>-</span>
+              <ColoredRibbon num={lastFullRibbon} />
+            </span>
+          );
         }
       }
       
       if (endsWithPartialRibbon) {
         // Last ribbon is partial
-        parts.push(`R${endRibbon}:1-${endStrand}`);
+        parts.push(
+          <span key={`end-${endRibbon}`} className="flex items-center gap-1">
+            <ColoredRibbon num={endRibbon} />
+            <span>:</span>
+            <ColoredStrand num={1} />
+            <span>-</span>
+            <ColoredStrand num={endStrand} />
+          </span>
+        );
       }
       
-      return parts.join(' / ');
+      return (
+        <span className="flex items-center gap-2 flex-wrap">
+          {parts.map((part, index) => (
+            <span key={index} className="flex items-center gap-1">
+              {part}
+              {index < parts.length - 1 && <span className="mx-1">/</span>}
+            </span>
+          ))}
+        </span>
+      );
     }
   };
 
