@@ -552,6 +552,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/reset", async (_req, res) => {
+    try {
+      await storage.resetAllData();
+      res.status(200).json({ message: "All data has been reset successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to reset data" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

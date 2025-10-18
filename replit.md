@@ -52,6 +52,7 @@ Preferred communication style: Simple, everyday language.
   - **Fiber View:** When any circuit uses partial ribbons, displays individual fiber mappings (one row per fiber) with color-coded strand numbers.
 **Pass/Fail Status Badges:** Cables and circuits display green "Pass" badges when total assigned fibers are within cable capacity, or red "Fail" badges when exceeded.
 **Delete Cable:** Immediate deletion without confirmation dialog.
+**Reset All Data:** Red "Reset" button in upper right corner of header allows clearing all cables, circuits, and splices with confirmation dialog for starting fresh.
 **Circuit ID Management (Auto-Calculated Fiber Positions with Edit and Reorder):**
 - Simplified input: `circuitId` is the only required input.
 - Inline editing of circuit IDs with automatic recalculation of fiber positions.

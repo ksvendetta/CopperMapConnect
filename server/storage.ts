@@ -25,6 +25,8 @@ export interface IStorage {
   deleteSplice(id: string): Promise<boolean>;
   deleteSplicesByCableId(cableId: string): Promise<void>;
   checkSpliceConflict(cableId: string, startFiber: number, endFiber: number, excludeSpliceId?: string): Promise<Splice | null>;
+  
+  resetAllData(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -219,6 +221,12 @@ export class DatabaseStorage implements IStorage {
     }
 
     return null;
+  }
+
+  async resetAllData(): Promise<void> {
+    await db.delete(splices);
+    await db.delete(circuits);
+    await db.delete(cables);
   }
 }
 

@@ -10,11 +10,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { CableCard } from "@/components/CableCard";
 import { CableForm } from "@/components/CableForm";
 import { CableVisualization } from "@/components/CableVisualization";
 import { CircuitManagement } from "@/components/CircuitManagement";
-import { Plus, Cable as CableIcon, Workflow } from "lucide-react";
+import { Plus, Cable as CableIcon, Workflow, RotateCcw } from "lucide-react";
 import spliceLogo from "@assets/image_1760814059676.png";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -34,6 +44,7 @@ export default function Home() {
   const [selectedCableId, setSelectedCableId] = useState<string | null>(null);
   const [cableDialogOpen, setCableDialogOpen] = useState(false);
   const [editingCable, setEditingCable] = useState<Cable | null>(null);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
   const { data: cables = [], isLoading: cablesLoading } = useQuery<Cable[]>({
     queryKey: ["/api/cables"],
@@ -97,6 +108,22 @@ export default function Home() {
     },
   });
 
+  const resetDataMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("DELETE", "/api/reset", undefined);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cables"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/circuits"] });
+      setSelectedCableId(null);
+      setResetDialogOpen(false);
+      toast({ title: "All data has been reset successfully" });
+    },
+    onError: () => {
+      toast({ title: "Failed to reset data", variant: "destructive" });
+    },
+  });
+
   const handleCableSubmit = (data: InsertCable) => {
     if (editingCable) {
       updateCableMutation.mutate({ id: editingCable.id, data });
@@ -124,16 +151,27 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="h-6 w-6 overflow-hidden flex items-center justify-center">
-              <img 
-                src={spliceLogo} 
-                alt="Splice" 
-                className="h-12 w-12 invert dark:invert-0" 
-                style={{ objectFit: 'cover', objectPosition: 'center' }}
-              />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-6 w-6 overflow-hidden flex items-center justify-center">
+                <img 
+                  src={spliceLogo} 
+                  alt="Splice" 
+                  className="h-12 w-12 invert dark:invert-0" 
+                  style={{ objectFit: 'cover', objectPosition: 'center' }}
+                />
+              </div>
+              <h1 className="text-xl font-semibold">Fiber Splice Manager</h1>
             </div>
-            <h1 className="text-xl font-semibold">Fiber Splice Manager</h1>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setResetDialogOpen(true)}
+              data-testid="button-reset"
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Reset
+            </Button>
           </div>
         </div>
       </header>
@@ -451,6 +489,28 @@ export default function Home() {
           />
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+        <AlertDialogContent data-testid="dialog-reset-confirm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset All Data</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete all cables, circuits, and splices. This action cannot be undone.
+              Are you sure you want to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-reset-cancel">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => resetDataMutation.mutate()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="button-reset-confirm"
+            >
+              Reset All Data
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </div>
   );
