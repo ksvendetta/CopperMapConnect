@@ -268,25 +268,17 @@ export default function Home() {
                       <TableHeader>
                         <TableRow className="bg-muted/50">
                           <TableHead colSpan={3} className="text-center font-semibold bg-green-600/20 dark:bg-green-900/30">Feed</TableHead>
-                          <TableHead rowSpan={2} className="text-center font-semibold"></TableHead>
+                          <TableHead className="text-center font-semibold">Count</TableHead>
                           <TableHead colSpan={3} className="text-center font-semibold bg-purple-600/20 dark:bg-purple-900/30">Distribution</TableHead>
                         </TableRow>
                         <TableRow>
                           <TableHead className="text-center">Cable</TableHead>
-                          <TableHead className="text-center bg-blue-600/20 dark:bg-blue-900/30">Ribbon</TableHead>
+                          <TableHead className="text-center">Ribbon</TableHead>
                           <TableHead className="text-center">Strand</TableHead>
+                          <TableHead className="text-center"></TableHead>
                           <TableHead className="text-center">Strand</TableHead>
-                          <TableHead className="text-center bg-blue-600/20 dark:bg-blue-900/30">Ribbon</TableHead>
+                          <TableHead className="text-center">Ribbon</TableHead>
                           <TableHead className="text-center">Cable</TableHead>
-                        </TableRow>
-                        <TableRow>
-                          <TableHead className="text-center"></TableHead>
-                          <TableHead className="text-center"></TableHead>
-                          <TableHead className="text-center"></TableHead>
-                          <TableHead className="text-center bg-muted/50 text-muted-foreground font-semibold">Count</TableHead>
-                          <TableHead className="text-center"></TableHead>
-                          <TableHead className="text-center"></TableHead>
-                          <TableHead className="text-center"></TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -350,27 +342,19 @@ export default function Home() {
                             fiberRows.push(
                               <TableRow key={`${circuit.id}-fiber-${i}`} data-testid={`row-fiber-${circuit.id}-${i}`}>
                                 <TableCell className="text-center font-mono text-sm">{feedCable.fiberCount}</TableCell>
+                                <TableCell className="text-center font-mono font-semibold">{feedRibbon}</TableCell>
                                 <TableCell className="text-center">
-                                  <div className={`inline-block px-3 py-1 rounded ${ribbonColor.bg} ${ribbonColor.text} font-mono font-semibold`}>
-                                    {feedRibbon}
-                                  </div>
-                                </TableCell>
-                                <TableCell className="text-center">
-                                  <div className={`inline-block px-3 py-1 rounded ${feedColor.bg} ${feedColor.text} font-mono font-semibold`}>
+                                  <div className={`inline-block px-3 py-1 rounded border-2 border-black ${feedColor.bg} ${feedColor.text} font-mono font-semibold`}>
                                     {feedStrand}
                                   </div>
                                 </TableCell>
                                 <TableCell className="text-center font-mono font-semibold">{circuitPrefix},{circuitNumber}</TableCell>
                                 <TableCell className="text-center">
-                                  <div className={`inline-block px-3 py-1 rounded ${distColor.bg} ${distColor.text} font-mono font-semibold`}>
+                                  <div className={`inline-block px-3 py-1 rounded border-2 border-black ${distColor.bg} ${distColor.text} font-mono font-semibold`}>
                                     {distStrand}
                                   </div>
                                 </TableCell>
-                                <TableCell className="text-center">
-                                  <div className={`inline-block px-3 py-1 rounded ${ribbonColor.bg} ${ribbonColor.text} font-mono font-semibold`}>
-                                    {distRibbon}
-                                  </div>
-                                </TableCell>
+                                <TableCell className="text-center font-mono font-semibold">{distRibbon}</TableCell>
                                 <TableCell className="text-center font-mono text-sm">{distributionCable?.fiberCount}</TableCell>
                               </TableRow>
                             );
