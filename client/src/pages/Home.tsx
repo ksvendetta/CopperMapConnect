@@ -61,11 +61,13 @@ export default function Home() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/cables"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/circuits"] });
       setCableDialogOpen(false);
       toast({ title: "Cable created successfully" });
     },
-    onError: () => {
-      toast({ title: "Failed to create cable", variant: "destructive" });
+    onError: (error: any) => {
+      const errorMessage = error?.message || "Failed to create cable";
+      toast({ title: errorMessage, variant: "destructive" });
     },
   });
 
@@ -75,12 +77,14 @@ export default function Home() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/cables"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/circuits"] });
       setCableDialogOpen(false);
       setEditingCable(null);
       toast({ title: "Cable updated successfully" });
     },
-    onError: () => {
-      toast({ title: "Failed to update cable", variant: "destructive" });
+    onError: (error: any) => {
+      const errorMessage = error?.message || "Failed to update cable";
+      toast({ title: errorMessage, variant: "destructive" });
     },
   });
 
@@ -108,8 +112,9 @@ export default function Home() {
       setSpliceDialogOpen(false);
       toast({ title: "Splice created successfully" });
     },
-    onError: () => {
-      toast({ title: "Failed to create splice", variant: "destructive" });
+    onError: (error: any) => {
+      const errorMessage = error?.message || "Failed to create splice";
+      toast({ title: errorMessage, variant: "destructive" });
     },
   });
 

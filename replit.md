@@ -64,8 +64,8 @@ Preferred communication style: Simple, everyday language.
 - Database schema defined in shared/schema.ts for full-stack type sharing
 
 **Database Schema**
-- **Cables Table**: Stores cable definitions with id (UUID), name, fiberCount, ribbonSize (default 12), and type fields
-- **Circuits Table**: Stores circuit ID assignments and fiber allocations within each cable (cableId, circuitId, fiberStart, fiberEnd)
+- **Cables Table**: Stores cable definitions with id (UUID), name, fiberCount, ribbonSize (always 12, not exposed in UI), and type (restricted to "Feed" or "Distribution")
+- **Circuits Table**: Stores circuit ID assignments and fiber allocations within each cable (cableId, circuitId, position, fiberStart, fiberEnd - all auto-calculated)
 - **Splices Table**: Stores fiber connections between cables with source/destination cable references, ribbon numbers, fiber ranges (start/end), optional PON range, and completion status
 - UUID primary keys using PostgreSQL's gen_random_uuid()
 - Integer-based boolean for splice completion status (0/1) for database compatibility
@@ -164,3 +164,12 @@ Preferred communication style: Simple, everyday language.
   - Smart recalculation when circuits are deleted
   - Ribbon-aware position display (e.g., "R2: 9-12")
   - Pass/fail validation for complete fiber allocation
+- **Integrated Cable and Circuit Creation**:
+  - Circuits can now be entered during cable creation (multi-line textarea)
+  - Backend creates cable and associated circuits in one transaction
+  - Auto-validates that circuits don't exceed cable fiber capacity
+  - Only available when creating new cables (not editing existing ones)
+- **Simplified Cable Configuration**:
+  - Ribbon size always defaults to 12 (removed from UI input)
+  - Cable type restricted to "Feed" and "Distribution" only
+  - Improved error messages showing specific validation errors from backend
