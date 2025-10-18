@@ -552,6 +552,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Save/Load routes
+  app.get("/api/saves", async (_req, res) => {
+    try {
+      const saves = await storage.getAllSaves();
+      res.json(saves);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch saves" });
+    }
+  });
+
+  app.post("/api/saves", async (req, res) => {
+    try {
+      // Get current cables and circuits
+      const cables = await storage.getAllCables();
+      const circuits = await storage.getAllCircuits();
+      
+      // Create timestamp name
+      const now = new Date();
+      const name = now.toLocaleString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      }).replace(/,/g, '');
+      
+      const saveData = {
+        name,
+        data: JSON.stringify({ cables, circuits }),
+      };
+      
+      const save = await storage.createSave(saveData);
+      res.status(201).json(save);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create save" });
+    }
+  });
+
+  app.post("/api/saves/:id/load", async (req, res) => {
+    try {
+      const saveData = await storage.loadSave(req.params.id);
+      if (!saveData) {
+        return res.status(404).json({ error: "Save not found" });
+      }
+      
+      // Clear current data
+      await storage.resetAllData();
+      
+      // Restore cables and circuits
+      for (const cable of saveData.cables) {
+        await storage.createCable({
+          name: cable.name,
+          fiberCount: cable.fiberCount,
+          type: cable.type as "Feed" | "Distribution",
+        });
+      }
+      
+      for (const circuit of saveData.circuits) {
+        await storage.createCircuit({
+          cableId: circuit.cableId,
+          circuitId: circuit.circuitId,
+          position: circuit.position,
+          fiberStart: circuit.fiberStart,
+          fiberEnd: circuit.fiberEnd,
+        });
+      }
+      
+      res.json({ message: "Save loaded successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to load save" });
+    }
+  });
+
   app.delete("/api/reset", async (_req, res) => {
     try {
       await storage.resetAllData();

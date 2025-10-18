@@ -1,6 +1,6 @@
-import { cables, circuits, splices, type Cable, type InsertCable, type Circuit, type InsertCircuit, type Splice, type InsertSplice } from "@shared/schema";
+import { cables, circuits, splices, saves, type Cable, type InsertCable, type Circuit, type InsertCircuit, type Splice, type InsertSplice, type Save, type InsertSave } from "@shared/schema";
 import { db } from "./db";
-import { eq, or, asc } from "drizzle-orm";
+import { eq, or, asc, desc } from "drizzle-orm";
 
 export interface IStorage {
   getAllCables(): Promise<Cable[]>;
@@ -25,6 +25,11 @@ export interface IStorage {
   deleteSplice(id: string): Promise<boolean>;
   deleteSplicesByCableId(cableId: string): Promise<void>;
   checkSpliceConflict(cableId: string, startFiber: number, endFiber: number, excludeSpliceId?: string): Promise<Splice | null>;
+  
+  getAllSaves(): Promise<Save[]>;
+  createSave(save: InsertSave): Promise<Save>;
+  loadSave(id: string): Promise<{ cables: Cable[], circuits: Circuit[] } | undefined>;
+  cleanupOldSaves(): Promise<void>;
   
   resetAllData(): Promise<void>;
 }
@@ -221,6 +226,50 @@ export class DatabaseStorage implements IStorage {
     }
 
     return null;
+  }
+
+  async getAllSaves(): Promise<Save[]> {
+    return await db.select().from(saves).orderBy(desc(saves.createdAt));
+  }
+
+  async createSave(insertSave: InsertSave): Promise<Save> {
+    // First, cleanup old saves if we're at max capacity
+    await this.cleanupOldSaves();
+    
+    const [save] = await db
+      .insert(saves)
+      .values({
+        name: insertSave.name,
+        data: insertSave.data,
+      })
+      .returning();
+    return save;
+  }
+
+  async loadSave(id: string): Promise<{ cables: Cable[], circuits: Circuit[] } | undefined> {
+    const [save] = await db.select().from(saves).where(eq(saves.id, id));
+    if (!save) return undefined;
+    
+    try {
+      const data = JSON.parse(save.data);
+      return data;
+    } catch (error) {
+      console.error("Error parsing save data:", error);
+      return undefined;
+    }
+  }
+
+  async cleanupOldSaves(): Promise<void> {
+    const MAX_SAVES = 50;
+    const allSaves = await db.select().from(saves).orderBy(desc(saves.createdAt));
+    
+    if (allSaves.length >= MAX_SAVES) {
+      // Delete the oldest save(s) to make room
+      const savesToDelete = allSaves.slice(MAX_SAVES - 1); // Keep MAX_SAVES - 1, delete the rest
+      for (const save of savesToDelete) {
+        await db.delete(saves).where(eq(saves.id, save.id));
+      }
+    }
   }
 
   async resetAllData(): Promise<void> {
