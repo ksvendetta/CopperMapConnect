@@ -132,6 +132,7 @@ export default function Home() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/cables"] });
       queryClient.invalidateQueries({ queryKey: ["/api/circuits"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/saves"] });
       setSelectedCableId(null);
       setStartNewDialogOpen(false);
       toast({ title: "Current project saved. Starting new project." });
