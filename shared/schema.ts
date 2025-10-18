@@ -44,6 +44,7 @@ export const circuits = pgTable("circuits", {
   fiberStart: integer("fiber_start").notNull(), // Auto-calculated
   fiberEnd: integer("fiber_end").notNull(), // Auto-calculated
   isSpliced: integer("is_spliced").notNull().default(0), // 0 = not spliced, 1 = spliced
+  feedCableId: varchar("feed_cable_id"), // For Distribution cables: which Feed cable this maps to
 });
 
 // Splice table - represents a connection between fibers of two cables
@@ -76,6 +77,7 @@ export const insertCircuitSchema = createInsertSchema(circuits).omit({
   fiberStart: true, // Auto-calculated
   fiberEnd: true, // Auto-calculated
   isSpliced: true, // Defaults to 0
+  feedCableId: true, // Set when toggling splice status
 });
 export const insertSpliceSchema = createInsertSchema(splices).omit({ id: true }).refine(
   (data) => data.sourceStartFiber <= data.sourceEndFiber,
