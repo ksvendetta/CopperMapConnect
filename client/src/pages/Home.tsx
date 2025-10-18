@@ -42,6 +42,13 @@ export default function Home() {
     queryKey: ["/api/circuits"],
   });
 
+  // Sort cables: Feed first, then Distribution (maintaining insertion order within each type)
+  const sortedCables = useMemo(() => {
+    const feedCables = cables.filter(c => c.type === "Feed");
+    const distributionCables = cables.filter(c => c.type === "Distribution");
+    return [...feedCables, ...distributionCables];
+  }, [cables]);
+
   const createCableMutation = useMutation({
     mutationFn: async (data: InsertCable) => {
       return await apiRequest("POST", "/api/cables", data);
@@ -153,12 +160,12 @@ export default function Home() {
                   <div className="space-y-2">
                     {cablesLoading ? (
                       <div className="text-center py-12 text-muted-foreground">Loading cables...</div>
-                    ) : cables.length === 0 ? (
+                    ) : sortedCables.length === 0 ? (
                       <div className="text-center py-12 text-muted-foreground" data-testid="text-no-cables">
                         No cables yet. Add a cable to get started.
                       </div>
                     ) : (
-                      cables.map((cable) => {
+                      sortedCables.map((cable) => {
                         const cableCircuits = allCircuits.filter(c => c.cableId === cable.id);
                         const totalAssignedFibers = cableCircuits.reduce((sum, circuit) => {
                           return sum + (circuit.fiberEnd - circuit.fiberStart + 1);
@@ -236,9 +243,9 @@ export default function Home() {
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-muted/50">
-                          <TableHead colSpan={3} className="text-center font-semibold bg-green-600/20 dark:bg-green-900/30">Feed</TableHead>
+                          <TableHead colSpan={3} className="text-center font-semibold bg-green-100 dark:bg-green-950/50">Feed</TableHead>
                           <TableHead className="text-center font-semibold">Count</TableHead>
-                          <TableHead colSpan={3} className="text-center font-semibold bg-purple-600/20 dark:bg-purple-900/30">Distribution</TableHead>
+                          <TableHead colSpan={3} className="text-center font-semibold bg-blue-100 dark:bg-blue-950/50">Distribution</TableHead>
                         </TableRow>
                         <TableRow>
                           <TableHead className="text-center">Cable</TableHead>

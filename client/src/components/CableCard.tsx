@@ -14,9 +14,13 @@ interface CableCardProps {
 }
 
 export function CableCard({ cable, isSelected, onSelect, onEdit, onDelete, isValid }: CableCardProps) {
+  const bgColor = cable.type === "Feed" 
+    ? "bg-green-50 dark:bg-green-950/30" 
+    : "bg-blue-50 dark:bg-blue-950/30";
+  
   return (
     <Card
-      className={`cursor-pointer transition-all hover-elevate ${
+      className={`cursor-pointer transition-all hover-elevate ${bgColor} ${
         isSelected ? "ring-2 ring-primary" : ""
       }`}
       onClick={onSelect}
