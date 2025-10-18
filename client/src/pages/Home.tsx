@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Cable, Splice, InsertCable, InsertSplice } from "@shared/schema";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,10 +26,12 @@ import { SpliceForm } from "@/components/SpliceForm";
 import { SpliceTable } from "@/components/SpliceTable";
 import { CableVisualization } from "@/components/CableVisualization";
 import { SpliceConnections } from "@/components/SpliceConnections";
-import { Plus, Cable as CableIcon, Network } from "lucide-react";
+import { Plus, Cable as CableIcon, Network, Search, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 export default function Home() {
   const { toast } = useToast();
@@ -40,6 +42,8 @@ export default function Home() {
   const [editingSplice, setEditingSplice] = useState<Splice | null>(null);
   const [deletingCable, setDeletingCable] = useState<Cable | null>(null);
   const [deletingSplice, setDeletingSplice] = useState<Splice | null>(null);
+  const [cableSearchTerm, setCableSearchTerm] = useState("");
+  const [spliceFilter, setSpliceFilter] = useState<"all" | "completed" | "pending">("all");
   const spliceContainerRef = useRef<HTMLDivElement>(null);
 
   const { data: cables = [], isLoading: cablesLoading } = useQuery<Cable[]>({
@@ -160,11 +164,27 @@ export default function Home() {
     });
   };
 
+  const filteredCables = useMemo(() => {
+    if (!cableSearchTerm) return cables;
+    const searchLower = cableSearchTerm.toLowerCase();
+    return cables.filter(
+      (cable) =>
+        cable.name.toLowerCase().includes(searchLower) ||
+        cable.type.toLowerCase().includes(searchLower)
+    );
+  }, [cables, cableSearchTerm]);
+
+  const filteredSplices = useMemo(() => {
+    if (spliceFilter === "all") return splices;
+    if (spliceFilter === "completed") return splices.filter((s) => s.isCompleted === 1);
+    return splices.filter((s) => s.isCompleted === 0);
+  }, [splices, spliceFilter]);
+
   const selectedCable = cables.find((c) => c.id === selectedCableId);
 
-  const feedCables = cables.filter((c) => c.type === "Feed");
-  const middleCables = cables.filter((c) => c.type === "Cable");
-  const distributionCables = cables.filter((c) => c.type === "Distribution");
+  const feedCables = filteredCables.filter((c) => c.type === "Feed");
+  const middleCables = filteredCables.filter((c) => c.type === "Cable");
+  const distributionCables = filteredCables.filter((c) => c.type === "Distribution");
 
   return (
     <div className="min-h-screen bg-background">
@@ -208,7 +228,18 @@ export default function Home() {
                   </Button>
                 </div>
 
-                <ScrollArea className="h-[600px] pr-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search cables by name or type..."
+                    value={cableSearchTerm}
+                    onChange={(e) => setCableSearchTerm(e.target.value)}
+                    className="pl-10"
+                    data-testid="input-search-cables"
+                  />
+                </div>
+
+                <ScrollArea className="h-[560px] pr-4">
                   <div className="space-y-2">
                     {cablesLoading ? (
                       <div className="text-center py-12 text-muted-foreground">Loading cables...</div>
@@ -216,8 +247,12 @@ export default function Home() {
                       <div className="text-center py-12 text-muted-foreground" data-testid="text-no-cables">
                         No cables yet. Add a cable to get started.
                       </div>
+                    ) : filteredCables.length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground" data-testid="text-no-results">
+                        No cables match your search.
+                      </div>
                     ) : (
-                      cables.map((cable) => (
+                      filteredCables.map((cable) => (
                         <CableCard
                           key={cable.id}
                           cable={cable}
@@ -306,20 +341,49 @@ export default function Home() {
 
                 <Card className="mt-6">
                   <CardHeader>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-4 flex-wrap">
                       <CardTitle>Splice Connections</CardTitle>
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          setEditingSplice(null);
-                          setSpliceDialogOpen(true);
-                        }}
-                        disabled={cables.length < 2}
-                        data-testid="button-add-splice"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Splice
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
+                          <Filter className="h-4 w-4 text-muted-foreground" />
+                          <Badge
+                            variant={spliceFilter === "all" ? "default" : "outline"}
+                            className="cursor-pointer hover-elevate"
+                            onClick={() => setSpliceFilter("all")}
+                            data-testid="filter-all-splices"
+                          >
+                            All
+                          </Badge>
+                          <Badge
+                            variant={spliceFilter === "completed" ? "default" : "outline"}
+                            className="cursor-pointer hover-elevate"
+                            onClick={() => setSpliceFilter("completed")}
+                            data-testid="filter-completed-splices"
+                          >
+                            Completed
+                          </Badge>
+                          <Badge
+                            variant={spliceFilter === "pending" ? "default" : "outline"}
+                            className="cursor-pointer hover-elevate"
+                            onClick={() => setSpliceFilter("pending")}
+                            data-testid="filter-pending-splices"
+                          >
+                            Pending
+                          </Badge>
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setEditingSplice(null);
+                            setSpliceDialogOpen(true);
+                          }}
+                          disabled={cables.length < 2}
+                          data-testid="button-add-splice"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Splice
+                        </Button>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -327,7 +391,7 @@ export default function Home() {
                       <div className="text-center py-8 text-muted-foreground">Loading splices...</div>
                     ) : (
                       <SpliceTable
-                        splices={splices}
+                        splices={filteredSplices}
                         cables={cables}
                         onEdit={(splice) => {
                           setEditingSplice(splice);
