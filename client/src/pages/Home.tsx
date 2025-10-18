@@ -121,8 +121,11 @@ export default function Home() {
   }, [cables, cableSearchTerm]);
 
   const splicedCircuits = useMemo(() => {
-    return allCircuits.filter((circuit) => circuit.isSpliced === 1);
-  }, [allCircuits]);
+    return allCircuits.filter((circuit) => {
+      const cable = cables.find(c => c.id === circuit.cableId);
+      return circuit.isSpliced === 1 && cable?.type === "Distribution";
+    });
+  }, [allCircuits, cables]);
 
   const selectedCable = cables.find((c) => c.id === selectedCableId);
 
