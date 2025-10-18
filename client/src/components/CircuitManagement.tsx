@@ -133,16 +133,32 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
 
   const handleCheckboxChange = (circuit: Circuit, checked: boolean) => {
     if (cable.type === "Distribution" && checked) {
-      // Automatically find matching circuit in Feed cables
+      // Extract prefix from Distribution circuit ID
+      const distributionPrefix = circuit.circuitId.split(',')[0]?.trim();
+      
+      // Find matching circuit in Feed cables where the Distribution range is within the Feed range
       const matchingFeedCircuit = allCircuits.find(c => {
         const feedCable = allCables.find(cable => cable.id === c.cableId);
-        return feedCable?.type === "Feed" && c.circuitId === circuit.circuitId;
+        if (feedCable?.type !== "Feed") return false;
+        
+        // Extract prefix from Feed circuit ID
+        const feedPrefix = c.circuitId.split(',')[0]?.trim();
+        
+        // Check if prefixes match
+        if (feedPrefix !== distributionPrefix) return false;
+        
+        // Check if Distribution range is within Feed range
+        const isWithinRange = 
+          circuit.fiberStart >= c.fiberStart && 
+          circuit.fiberEnd <= c.fiberEnd;
+        
+        return isWithinRange;
       });
 
       if (!matchingFeedCircuit) {
         toast({
           title: "No matching Feed circuit found",
-          description: `Could not find circuit "${circuit.circuitId}" in any Feed cable`,
+          description: `Could not find a Feed circuit with prefix "${distributionPrefix}" that contains the range ${circuit.fiberStart}-${circuit.fiberEnd}`,
           variant: "destructive",
         });
         return;
@@ -154,8 +170,8 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
       toggleSplicedMutation.mutate({
         circuitId: circuit.id,
         feedCableId: feedCable?.id,
-        feedFiberStart: matchingFeedCircuit.fiberStart,
-        feedFiberEnd: matchingFeedCircuit.fiberEnd,
+        feedFiberStart: circuit.fiberStart,
+        feedFiberEnd: circuit.fiberEnd,
       });
     } else {
       // Unchecking - just toggle without feed cable info
