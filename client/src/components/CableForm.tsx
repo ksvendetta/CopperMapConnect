@@ -28,8 +28,6 @@ interface CableFormProps {
   isLoading?: boolean;
 }
 
-const fiberCounts = [12, 24, 48, 72, 96, 144, 288];
-
 export function CableForm({ cable, onSubmit, onCancel, isLoading }: CableFormProps) {
   const form = useForm<InsertCable>({
     resolver: zodResolver(insertCableSchema),
@@ -97,23 +95,15 @@ export function CableForm({ cable, onSubmit, onCancel, isLoading }: CableFormPro
           render={({ field }) => (
             <FormItem>
               <FormLabel>Fiber Count</FormLabel>
-              <Select
-                onValueChange={(value) => field.onChange(parseInt(value))}
-                defaultValue={field.value.toString()}
-              >
-                <FormControl>
-                  <SelectTrigger data-testid="select-fiber-count">
-                    <SelectValue placeholder="Select fiber count" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {fiberCounts.map((count) => (
-                    <SelectItem key={count} value={count.toString()} data-testid={`option-fiber-count-${count}`}>
-                      {count}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="e.g., 24, 48, 72"
+                  {...field}
+                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                  data-testid="input-fiber-count"
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
