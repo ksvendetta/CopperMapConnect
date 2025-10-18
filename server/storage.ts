@@ -1,5 +1,6 @@
-import { type Cable, type InsertCable, type Splice, type InsertSplice } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { cables, splices, type Cable, type InsertCable, type Splice, type InsertSplice } from "@shared/schema";
+import { db } from "./db";
+import { eq, or } from "drizzle-orm";
 
 export interface IStorage {
   getAllCables(): Promise<Cable[]>;
@@ -16,111 +17,100 @@ export interface IStorage {
   deleteSplicesByCableId(cableId: string): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private cables: Map<string, Cable>;
-  private splices: Map<string, Splice>;
-
-  constructor() {
-    this.cables = new Map();
-    this.splices = new Map();
-  }
-
+export class DatabaseStorage implements IStorage {
   async getAllCables(): Promise<Cable[]> {
-    return Array.from(this.cables.values());
+    return await db.select().from(cables);
   }
 
   async getCable(id: string): Promise<Cable | undefined> {
-    return this.cables.get(id);
+    const [cable] = await db.select().from(cables).where(eq(cables.id, id));
+    return cable || undefined;
   }
 
   async createCable(insertCable: InsertCable): Promise<Cable> {
-    const id = randomUUID();
-    const cable: Cable = {
-      id,
-      name: insertCable.name,
-      fiberCount: insertCable.fiberCount,
-      ribbonSize: insertCable.ribbonSize ?? 12,
-      type: insertCable.type,
-    };
-    this.cables.set(id, cable);
+    const [cable] = await db
+      .insert(cables)
+      .values({
+        name: insertCable.name,
+        fiberCount: insertCable.fiberCount,
+        ribbonSize: insertCable.ribbonSize ?? 12,
+        type: insertCable.type,
+      })
+      .returning();
     return cable;
   }
 
   async updateCable(id: string, insertCable: InsertCable): Promise<Cable | undefined> {
-    const existingCable = this.cables.get(id);
-    if (!existingCable) {
-      return undefined;
-    }
-    const updatedCable: Cable = {
-      id,
-      name: insertCable.name,
-      fiberCount: insertCable.fiberCount,
-      ribbonSize: insertCable.ribbonSize ?? 12,
-      type: insertCable.type,
-    };
-    this.cables.set(id, updatedCable);
-    return updatedCable;
+    const [cable] = await db
+      .update(cables)
+      .set({
+        name: insertCable.name,
+        fiberCount: insertCable.fiberCount,
+        ribbonSize: insertCable.ribbonSize ?? 12,
+        type: insertCable.type,
+      })
+      .where(eq(cables.id, id))
+      .returning();
+    return cable || undefined;
   }
 
   async deleteCable(id: string): Promise<boolean> {
-    const deleted = this.cables.delete(id);
-    if (deleted) {
-      await this.deleteSplicesByCableId(id);
-    }
-    return deleted;
+    await this.deleteSplicesByCableId(id);
+    const result = await db.delete(cables).where(eq(cables.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
   }
 
   async getAllSplices(): Promise<Splice[]> {
-    return Array.from(this.splices.values());
+    return await db.select().from(splices);
   }
 
   async getSplice(id: string): Promise<Splice | undefined> {
-    return this.splices.get(id);
+    const [splice] = await db.select().from(splices).where(eq(splices.id, id));
+    return splice || undefined;
   }
 
   async createSplice(insertSplice: InsertSplice): Promise<Splice> {
-    const id = randomUUID();
-    const splice: Splice = {
-      id,
-      sourceCableId: insertSplice.sourceCableId,
-      destinationCableId: insertSplice.destinationCableId,
-      sourceRibbon: insertSplice.sourceRibbon,
-      sourceStartFiber: insertSplice.sourceStartFiber,
-      sourceEndFiber: insertSplice.sourceEndFiber,
-      destinationRibbon: insertSplice.destinationRibbon,
-      destinationStartFiber: insertSplice.destinationStartFiber,
-      destinationEndFiber: insertSplice.destinationEndFiber,
-      ponStart: insertSplice.ponStart ?? null,
-      ponEnd: insertSplice.ponEnd ?? null,
-      isCompleted: insertSplice.isCompleted ?? 0,
-    };
-    this.splices.set(id, splice);
+    const [splice] = await db
+      .insert(splices)
+      .values({
+        sourceCableId: insertSplice.sourceCableId,
+        destinationCableId: insertSplice.destinationCableId,
+        sourceRibbon: insertSplice.sourceRibbon,
+        sourceStartFiber: insertSplice.sourceStartFiber,
+        sourceEndFiber: insertSplice.sourceEndFiber,
+        destinationRibbon: insertSplice.destinationRibbon,
+        destinationStartFiber: insertSplice.destinationStartFiber,
+        destinationEndFiber: insertSplice.destinationEndFiber,
+        ponStart: insertSplice.ponStart ?? null,
+        ponEnd: insertSplice.ponEnd ?? null,
+        isCompleted: insertSplice.isCompleted ?? 0,
+      })
+      .returning();
     return splice;
   }
 
   async updateSplice(id: string, partialSplice: Partial<InsertSplice>): Promise<Splice | undefined> {
-    const existingSplice = this.splices.get(id);
-    if (!existingSplice) {
-      return undefined;
-    }
-    const updatedSplice: Splice = { ...existingSplice, ...partialSplice };
-    this.splices.set(id, updatedSplice);
-    return updatedSplice;
+    const [splice] = await db
+      .update(splices)
+      .set(partialSplice)
+      .where(eq(splices.id, id))
+      .returning();
+    return splice || undefined;
   }
 
   async deleteSplice(id: string): Promise<boolean> {
-    return this.splices.delete(id);
+    const result = await db.delete(splices).where(eq(splices.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
   }
 
   async deleteSplicesByCableId(cableId: string): Promise<void> {
-    const splicesToDelete = Array.from(this.splices.values()).filter(
-      (splice) => splice.sourceCableId === cableId || splice.destinationCableId === cableId
+    await db.delete(splices).where(
+      or(
+        eq(splices.sourceCableId, cableId),
+        eq(splices.destinationCableId, cableId)
+      )
     );
-    
-    for (const splice of splicesToDelete) {
-      this.splices.delete(splice.id);
-    }
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
