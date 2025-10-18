@@ -46,7 +46,10 @@ Preferred communication style: Simple, everyday language.
 - Automatically extracts Feed cable ID and fiber positions for one-click splicing.
 - Stores `feedCableId`, `feedFiberStart`, `feedFiberEnd` in the circuits table (Distribution circuit's actual fiber range, not Feed range).
 - Error handling with toast messages if no matching Feed circuit is found.
-- Splice tab displays individual fiber mappings (one row per fiber) with color-coded, industry-standard fiber optic colors (12 colors).
+- Splice tab displays fiber mappings with color-coded, industry-standard fiber optic colors (12 colors).
+- **Adaptive Splice Display:** Automatically switches between two display modes:
+  - **Full Ribbon View:** When all circuits use complete ribbons (fiber counts are multiples of 12), displays one row per ribbon with color-coded ribbon numbers and circuit ranges (e.g., "pon,49-60"). Strand columns are hidden for cleaner visualization.
+  - **Fiber View:** When any circuit uses partial ribbons, displays individual fiber mappings (one row per fiber) with color-coded strand numbers.
 **Pass/Fail Status Badges:** Cables and circuits display green "Pass" badges when total assigned fibers are within cable capacity, or red "Fail" badges when exceeded.
 **Delete Cable:** Immediate deletion without confirmation dialog.
 **Circuit ID Management (Auto-Calculated Fiber Positions with Edit and Reorder):**
@@ -57,9 +60,11 @@ Preferred communication style: Simple, everyday language.
 - Real-time validation for fiber count matching cable capacity.
 - Visual feedback on assigned/total fiber count.
 **User Interface:**
-- Two main tabs: **InputData** (cable and circuit management) with Cable icon, and **Splice** (splice mappings) with Workflow icon.
+- Dynamic tab system: **InputData** tab (cable and circuit management) with Cable icon, and separate **Splice** tabs for each Distribution cable with Workflow icon.
 - InputData tab features cable list, cable details, circuit management, and splice checkboxes.
-- Splice tab features a three-row header with "Feed" and "Distribution" sections and detailed, color-coded individual fiber mapping.
+- Each Distribution cable gets its own Splice tab (e.g., "Splice dist1", "Splice dist2") showing only that cable's splice mappings.
+- Splice tabs feature a two-row header with "Feed" and "Distribution" sections, cable names showing "Name - FiberCount" format, and detailed color-coded fiber/ribbon mapping.
+- Alternating row colors (white/gray-200) by circuit ID for visual grouping.
 - **Label Usage:** Cable details section shows "Cable Size: X", Circuit management header shows "Fiber Count: X/Y" (X assigned out of Y total).
 - **Pass/Fail Status:** Both cable cards and circuit details use consistent logic (Pass only when ALL fibers are assigned: assigned fibers === cable capacity).
 - Responsive design with a professional technical interface.
