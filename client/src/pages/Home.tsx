@@ -24,7 +24,7 @@ import { CableCard } from "@/components/CableCard";
 import { CableForm } from "@/components/CableForm";
 import { CableVisualization } from "@/components/CableVisualization";
 import { CircuitManagement } from "@/components/CircuitManagement";
-import { Plus, Cable as CableIcon, Workflow, FilePlus, History, RotateCcw } from "lucide-react";
+import { Plus, Cable as CableIcon, Workflow, FilePlus, History, RotateCcw, RefreshCw } from "lucide-react";
 import spliceLogo from "@assets/image_1760814059676.png";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -214,6 +214,20 @@ export default function Home() {
               >
                 <History className="h-4 w-4 mr-2" />
                 History
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  queryClient.invalidateQueries({ queryKey: ["/api/cables"] });
+                  queryClient.invalidateQueries({ queryKey: ["/api/circuits"] });
+                  queryClient.invalidateQueries({ queryKey: ["/api/saves"] });
+                  toast({ title: "Data refreshed from server" });
+                }}
+                data-testid="button-refresh"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
               </Button>
               <Button
                 variant="destructive"
