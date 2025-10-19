@@ -195,14 +195,11 @@ export default function Home() {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-6 w-6 overflow-hidden flex items-center justify-center">
-                <img 
-                  src={spliceLogo} 
-                  alt="Splice" 
-                  className="h-12 w-12 invert dark:invert-0" 
-                  style={{ objectFit: 'cover', objectPosition: 'center' }}
-                />
-              </div>
+              <img 
+                src={spliceLogo} 
+                alt="Splice Logo" 
+                className="h-8 w-8 object-contain" 
+              />
               <h1 className="text-xl font-semibold">Fiber Splice Manager</h1>
             </div>
             <div className="flex items-center gap-2">
