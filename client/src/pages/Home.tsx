@@ -383,17 +383,23 @@ export default function Home() {
           {distributionCables.map((distCable) => {
             const cableSplicedCircuits = splicedCircuits.filter(c => c.cableId === distCable.id);
             
-            // Check if all circuits use full ribbons (each circuit's fiber count is a multiple of 12)
+            // Get ribbon/binder size from cable (12 for fiber, 25 for copper)
+            const ribbonSize = distCable.ribbonSize || 12;
+            const isCopperMode = settings?.spliceMode === "copper";
+            const unitName = isCopperMode ? "Pair" : "Strand";
+            const groupName = isCopperMode ? "Binder" : "Ribbon";
+            
+            // Check if all circuits use full ribbons/binders
             const allFullRibbons = cableSplicedCircuits.length > 0 && cableSplicedCircuits.every(circuit => {
               const fiberCount = circuit.fiberEnd - circuit.fiberStart + 1;
-              return fiberCount % 12 === 0;
+              return fiberCount % ribbonSize === 0;
             });
             
             // Calculate total number of splice rows
             const totalSpliceRows = allFullRibbons 
               ? cableSplicedCircuits.reduce((sum, circuit) => {
                   const fiberCount = circuit.fiberEnd - circuit.fiberStart + 1;
-                  return sum + (fiberCount / 12);
+                  return sum + (fiberCount / ribbonSize);
                 }, 0)
               : cableSplicedCircuits.reduce((sum, circuit) => {
                   return sum + (circuit.fiberEnd - circuit.fiberStart + 1);
@@ -423,11 +429,11 @@ export default function Home() {
                             </TableRow>
                             <TableRow>
                               <TableHead className="text-center">Cable</TableHead>
-                              <TableHead className="text-center">Ribbon</TableHead>
-                              {!allFullRibbons && <TableHead className="text-center">Strand</TableHead>}
+                              <TableHead className="text-center">{groupName}</TableHead>
+                              {!allFullRibbons && <TableHead className="text-center">{unitName}</TableHead>}
                               <TableHead className="text-center"></TableHead>
-                              {!allFullRibbons && <TableHead className="text-center">Strand</TableHead>}
-                              <TableHead className="text-center">Ribbon</TableHead>
+                              {!allFullRibbons && <TableHead className="text-center">{unitName}</TableHead>}
+                              <TableHead className="text-center">{groupName}</TableHead>
                               <TableHead className="text-center">Cable</TableHead>
                             </TableRow>
                           </TableHeader>
@@ -467,11 +473,59 @@ export default function Home() {
                                 { name: "aqua", bg: "bg-cyan-400", text: "text-black" },
                               ];
                               
-                              const ribbonSize = 12;
+                              // Copper pair Ring colors (25-pair standard)
+                              const copperRingColors = [
+                                { name: "blue", bg: "bg-blue-500", text: "text-white" },     // Pair 1
+                                { name: "orange", bg: "bg-orange-500", text: "text-white" }, // Pair 2
+                                { name: "green", bg: "bg-green-600", text: "text-white" },   // Pair 3
+                                { name: "brown", bg: "bg-amber-700", text: "text-white" },   // Pair 4
+                                { name: "slate", bg: "bg-slate-500", text: "text-white" },   // Pair 5
+                                { name: "white", bg: "bg-white", text: "text-black" },       // Pair 6
+                                { name: "red", bg: "bg-red-600", text: "text-white" },       // Pair 7
+                                { name: "black", bg: "bg-black", text: "text-white" },       // Pair 8
+                                { name: "yellow", bg: "bg-yellow-400", text: "text-black" }, // Pair 9
+                                { name: "violet", bg: "bg-purple-600", text: "text-white" }, // Pair 10
+                                { name: "blue", bg: "bg-blue-500", text: "text-white" },     // Pair 11
+                                { name: "orange", bg: "bg-orange-500", text: "text-white" }, // Pair 12
+                                { name: "green", bg: "bg-green-600", text: "text-white" },   // Pair 13
+                                { name: "brown", bg: "bg-amber-700", text: "text-white" },   // Pair 14
+                                { name: "slate", bg: "bg-slate-500", text: "text-white" },   // Pair 15
+                                { name: "white", bg: "bg-white", text: "text-black" },       // Pair 16
+                                { name: "red", bg: "bg-red-600", text: "text-white" },       // Pair 17
+                                { name: "black", bg: "bg-black", text: "text-white" },       // Pair 18
+                                { name: "yellow", bg: "bg-yellow-400", text: "text-black" }, // Pair 19
+                                { name: "violet", bg: "bg-purple-600", text: "text-white" }, // Pair 20
+                                { name: "blue", bg: "bg-blue-500", text: "text-white" },     // Pair 21
+                                { name: "orange", bg: "bg-orange-500", text: "text-white" }, // Pair 22
+                                { name: "green", bg: "bg-green-600", text: "text-white" },   // Pair 23
+                                { name: "brown", bg: "bg-amber-700", text: "text-white" },   // Pair 24
+                                { name: "slate", bg: "bg-slate-500", text: "text-white" },   // Pair 25
+                              ];
+                              
+                              // Copper Tip color (always white)
+                              const copperTipColor = { name: "white", bg: "bg-white", text: "text-black" };
+                              
                               const getRibbonNumber = (fiber: number) => Math.ceil(fiber / ribbonSize);
                               const getFiberPositionInRibbon = (fiber: number) => ((fiber - 1) % ribbonSize) + 1;
-                              const getColorForStrand = (strand: number) => fiberColors[(strand - 1) % 12];
-                              const getColorForRibbon = (ribbon: number) => fiberColors[(ribbon - 1) % 12];
+                              
+                              // Get color based on mode
+                              const getColorForStrand = (strand: number) => {
+                                if (isCopperMode) {
+                                  // For copper, return Ring color based on pair number
+                                  return copperRingColors[(strand - 1) % 25];
+                                } else {
+                                  // For fiber, return fiber color
+                                  return fiberColors[(strand - 1) % 12];
+                                }
+                              };
+                              
+                              const getColorForRibbon = (ribbon: number) => {
+                                if (isCopperMode) {
+                                  return copperRingColors[(ribbon - 1) % 25];
+                                } else {
+                                  return fiberColors[(ribbon - 1) % 12];
+                                }
+                              };
                               
                               // Parse circuit ID to get the circuit numbers
                               const circuitIdParts = circuit.circuitId.split(',');
