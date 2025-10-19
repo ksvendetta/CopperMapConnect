@@ -51,7 +51,10 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
       return await apiRequest("POST", "/api/circuits", data);
     },
     onSuccess: () => {
-      window.location.href = window.location.href;
+      queryClient.invalidateQueries({ queryKey: ["/api/circuits/cable", cable.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/circuits"] });
+      setCircuitId("");
+      toast({ title: "Circuit added successfully" });
     },
     onError: (error: any) => {
       toast({ 
@@ -67,7 +70,9 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
       return await apiRequest("DELETE", `/api/circuits/${id}`, undefined);
     },
     onSuccess: () => {
-      window.location.href = window.location.href;
+      queryClient.invalidateQueries({ queryKey: ["/api/circuits/cable", cable.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/circuits"] });
+      toast({ title: "Circuit deleted successfully" });
     },
     onError: () => {
       toast({ title: "Failed to delete circuit", variant: "destructive" });
@@ -88,7 +93,8 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
       });
     },
     onSuccess: () => {
-      window.location.reload();
+      queryClient.invalidateQueries({ queryKey: ["/api/circuits/cable", cable.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/circuits"] });
     },
     onError: () => {
       toast({ title: "Failed to toggle splice status", variant: "destructive" });
@@ -100,7 +106,11 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
       return await apiRequest("PATCH", `/api/circuits/${id}/update-circuit-id`, { circuitId });
     },
     onSuccess: () => {
-      window.location.href = window.location.href;
+      queryClient.invalidateQueries({ queryKey: ["/api/circuits/cable", cable.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/circuits"] });
+      setEditingCircuitId(null);
+      setEditingCircuitValue("");
+      toast({ title: "Circuit ID updated successfully" });
     },
     onError: (error: any) => {
       toast({ 
@@ -116,7 +126,9 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
       return await apiRequest("PATCH", `/api/circuits/${id}/move`, { direction });
     },
     onSuccess: () => {
-      window.location.href = window.location.href;
+      queryClient.invalidateQueries({ queryKey: ["/api/circuits/cable", cable.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/circuits"] });
+      toast({ title: "Circuit moved successfully" });
     },
     onError: () => {
       toast({ title: "Failed to move circuit", variant: "destructive" });

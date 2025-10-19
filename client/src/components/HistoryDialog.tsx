@@ -38,9 +38,18 @@ export function HistoryDialog({ open, onOpenChange }: HistoryDialogProps) {
     mutationFn: async (saveId: string) => {
       return await apiRequest("POST", `/api/saves/${saveId}/load`, undefined);
     },
-    onSuccess: () => {
-      // Reload the page to show loaded data
-      window.location.href = window.location.href;
+    onSuccess: async () => {
+      // Invalidate and refetch all cables and circuits queries
+      await queryClient.invalidateQueries({ queryKey: ["/api/cables"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/circuits"] });
+      
+      toast({
+        title: "Success",
+        description: "Project loaded successfully",
+      });
+      
+      // Close dialog after refetch completes
+      onOpenChange(false);
     },
     onError: () => {
       toast({

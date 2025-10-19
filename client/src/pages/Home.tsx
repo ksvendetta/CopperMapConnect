@@ -69,7 +69,10 @@ export default function Home() {
       return await apiRequest("POST", "/api/cables", data);
     },
     onSuccess: () => {
-      window.location.href = window.location.href;
+      queryClient.invalidateQueries({ queryKey: ["/api/cables"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/circuits"] });
+      setCableDialogOpen(false);
+      toast({ title: "Cable created successfully" });
     },
     onError: (error: any) => {
       const errorMessage = error?.message || "Failed to create cable";
@@ -82,7 +85,11 @@ export default function Home() {
       return await apiRequest("PUT", `/api/cables/${id}`, data);
     },
     onSuccess: () => {
-      window.location.href = window.location.href;
+      queryClient.invalidateQueries({ queryKey: ["/api/cables"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/circuits"] });
+      setCableDialogOpen(false);
+      setEditingCable(null);
+      toast({ title: "Cable updated successfully" });
     },
     onError: (error: any) => {
       const errorMessage = error?.message || "Failed to update cable";
@@ -95,7 +102,9 @@ export default function Home() {
       return await apiRequest("DELETE", `/api/cables/${id}`, undefined);
     },
     onSuccess: () => {
-      window.location.href = window.location.href;
+      queryClient.invalidateQueries({ queryKey: ["/api/cables"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/circuits"] });
+      toast({ title: "Cable deleted successfully" });
     },
     onError: () => {
       toast({ title: "Failed to delete cable", variant: "destructive" });
@@ -122,7 +131,12 @@ export default function Home() {
       return await apiRequest("DELETE", "/api/reset", undefined);
     },
     onSuccess: () => {
-      window.location.href = window.location.href;
+      queryClient.invalidateQueries({ queryKey: ["/api/cables"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/circuits"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/saves"] });
+      setSelectedCableId(null);
+      setStartNewDialogOpen(false);
+      toast({ title: "Current project saved. Starting new project." });
     },
     onError: () => {
       toast({ title: "Failed to start new project", variant: "destructive" });
@@ -134,7 +148,11 @@ export default function Home() {
       return await apiRequest("DELETE", "/api/reset", undefined);
     },
     onSuccess: () => {
-      window.location.href = window.location.href;
+      queryClient.invalidateQueries({ queryKey: ["/api/cables"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/circuits"] });
+      setSelectedCableId(null);
+      setResetDialogOpen(false);
+      toast({ title: "All data has been reset" });
     },
     onError: () => {
       toast({ title: "Failed to reset data", variant: "destructive" });
