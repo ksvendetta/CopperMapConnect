@@ -1,6 +1,13 @@
-import { cables, circuits, splices, saves, type Cable, type InsertCable, type Circuit, type InsertCircuit, type Splice, type InsertSplice, type Save, type InsertSave } from "@shared/schema";
-import { db } from "./db";
-import { eq, or, asc, desc } from "drizzle-orm";
+import { type Cable, type InsertCable, type Circuit, type InsertCircuit, type Splice, type InsertSplice, type Save, type InsertSave } from "@shared/schema";
+
+// Simple UUID generator
+function generateId(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
 
 export interface IStorage {
   getAllCables(): Promise<Cable[]>;
@@ -34,249 +41,245 @@ export interface IStorage {
   resetAllData(): Promise<void>;
 }
 
-export class DatabaseStorage implements IStorage {
+// In-memory storage implementation (data lives in server memory)
+export class MemStorage implements IStorage {
+  private cables: Map<string, Cable> = new Map();
+  private circuits: Map<string, Circuit> = new Map();
+  private splices: Map<string, Splice> = new Map();
+  private saves: Map<string, Save> = new Map();
+
+  // Cable operations
   async getAllCables(): Promise<Cable[]> {
-    return await db.select().from(cables);
+    return Array.from(this.cables.values());
   }
 
   async getCable(id: string): Promise<Cable | undefined> {
-    const [cable] = await db.select().from(cables).where(eq(cables.id, id));
-    return cable || undefined;
+    return this.cables.get(id);
   }
 
   async createCable(insertCable: InsertCable): Promise<Cable> {
-    const [cable] = await db
-      .insert(cables)
-      .values({
-        name: insertCable.name,
-        fiberCount: insertCable.fiberCount,
-        ribbonSize: 12, // Always 12
-        type: insertCable.type,
-      })
-      .returning();
+    const cable: Cable = {
+      id: generateId(),
+      name: insertCable.name,
+      fiberCount: insertCable.fiberCount,
+      ribbonSize: 12,
+      type: insertCable.type,
+    };
+    this.cables.set(cable.id, cable);
     return cable;
   }
 
   async updateCable(id: string, insertCable: InsertCable): Promise<Cable | undefined> {
-    const [cable] = await db
-      .update(cables)
-      .set({
-        name: insertCable.name,
-        fiberCount: insertCable.fiberCount,
-        ribbonSize: 12, // Always 12
-        type: insertCable.type,
-      })
-      .where(eq(cables.id, id))
-      .returning();
-    return cable || undefined;
+    const cable = this.cables.get(id);
+    if (!cable) return undefined;
+
+    const updated: Cable = {
+      ...cable,
+      name: insertCable.name,
+      fiberCount: insertCable.fiberCount,
+      type: insertCable.type,
+    };
+    this.cables.set(id, updated);
+    return updated;
   }
 
   async deleteCable(id: string): Promise<boolean> {
     await this.deleteSplicesByCableId(id);
     await this.deleteCircuitsByCableId(id);
-    const result = await db.delete(cables).where(eq(cables.id, id));
-    return result.rowCount ? result.rowCount > 0 : false;
+    const result = this.cables.delete(id);
+    return result;
   }
 
+  // Circuit operations
   async getAllCircuits(): Promise<Circuit[]> {
-    return await db.select().from(circuits);
+    return Array.from(this.circuits.values());
   }
 
   async getCircuitsByCableId(cableId: string): Promise<Circuit[]> {
-    return await db.select().from(circuits).where(eq(circuits.cableId, cableId)).orderBy(asc(circuits.position));
+    return Array.from(this.circuits.values())
+      .filter(c => c.cableId === cableId)
+      .sort((a, b) => a.position - b.position);
   }
 
   async getCircuit(id: string): Promise<Circuit | undefined> {
-    const [circuit] = await db.select().from(circuits).where(eq(circuits.id, id));
-    return circuit || undefined;
+    return this.circuits.get(id);
   }
 
   async createCircuit(insertCircuit: InsertCircuit & { position: number; fiberStart: number; fiberEnd: number }): Promise<Circuit> {
-    const [circuit] = await db
-      .insert(circuits)
-      .values({
-        cableId: insertCircuit.cableId,
-        circuitId: insertCircuit.circuitId,
-        position: insertCircuit.position,
-        fiberStart: insertCircuit.fiberStart,
-        fiberEnd: insertCircuit.fiberEnd,
-      })
-      .returning();
+    const circuit: Circuit = {
+      id: generateId(),
+      cableId: insertCircuit.cableId,
+      circuitId: insertCircuit.circuitId,
+      position: insertCircuit.position,
+      fiberStart: insertCircuit.fiberStart,
+      fiberEnd: insertCircuit.fiberEnd,
+      isSpliced: 0,
+      feedCableId: null,
+      feedFiberStart: null,
+      feedFiberEnd: null,
+    };
+    this.circuits.set(circuit.id, circuit);
     return circuit;
   }
 
   async updateCircuit(id: string, partialCircuit: Partial<InsertCircuit>): Promise<Circuit | undefined> {
-    const [circuit] = await db
-      .update(circuits)
-      .set(partialCircuit)
-      .where(eq(circuits.id, id))
-      .returning();
-    return circuit || undefined;
+    const circuit = this.circuits.get(id);
+    if (!circuit) return undefined;
+
+    const updated: Circuit = { ...circuit, ...partialCircuit };
+    this.circuits.set(id, updated);
+    return updated;
   }
 
   async toggleCircuitSpliced(id: string, feedCableId?: string, feedFiberStart?: number, feedFiberEnd?: number): Promise<Circuit | undefined> {
-    const circuit = await this.getCircuit(id);
+    const circuit = this.circuits.get(id);
     if (!circuit) return undefined;
-    
+
     const newSplicedStatus = circuit.isSpliced === 1 ? 0 : 1;
     const updateData: Partial<Circuit> = { isSpliced: newSplicedStatus };
-    
-    // If splicing (setting to 1), set the feedCableId and feed fiber range
-    // If unsplicing (setting to 0), clear the feedCableId and feed fiber range
-    if (newSplicedStatus === 1 && feedCableId) {
-      updateData.feedCableId = feedCableId;
-      updateData.feedFiberStart = feedFiberStart || null;
-      updateData.feedFiberEnd = feedFiberEnd || null;
-    } else if (newSplicedStatus === 0) {
+
+    if (newSplicedStatus === 1) {
+      updateData.feedCableId = feedCableId || null;
+      updateData.feedFiberStart = feedFiberStart !== undefined ? feedFiberStart : null;
+      updateData.feedFiberEnd = feedFiberEnd !== undefined ? feedFiberEnd : null;
+    } else {
       updateData.feedCableId = null;
       updateData.feedFiberStart = null;
       updateData.feedFiberEnd = null;
     }
-    
-    const [updatedCircuit] = await db
-      .update(circuits)
-      .set(updateData)
-      .where(eq(circuits.id, id))
-      .returning();
-    return updatedCircuit || undefined;
+
+    return this.updateCircuit(id, updateData);
   }
 
   async deleteCircuit(id: string): Promise<boolean> {
-    const result = await db.delete(circuits).where(eq(circuits.id, id));
-    return result.rowCount ? result.rowCount > 0 : false;
+    const result = this.circuits.delete(id);
+    return result;
   }
 
   async deleteCircuitsByCableId(cableId: string): Promise<void> {
-    await db.delete(circuits).where(eq(circuits.cableId, cableId));
+    const circuitsToDelete = Array.from(this.circuits.values())
+      .filter(c => c.cableId === cableId)
+      .map(c => c.id);
+
+    circuitsToDelete.forEach(id => this.circuits.delete(id));
   }
 
+  // Splice operations
   async getAllSplices(): Promise<Splice[]> {
-    return await db.select().from(splices);
+    return Array.from(this.splices.values());
   }
 
   async getSplice(id: string): Promise<Splice | undefined> {
-    const [splice] = await db.select().from(splices).where(eq(splices.id, id));
-    return splice || undefined;
+    return this.splices.get(id);
   }
 
   async createSplice(insertSplice: InsertSplice): Promise<Splice> {
-    const [splice] = await db
-      .insert(splices)
-      .values({
-        sourceCableId: insertSplice.sourceCableId,
-        destinationCableId: insertSplice.destinationCableId,
-        sourceRibbon: insertSplice.sourceRibbon,
-        sourceStartFiber: insertSplice.sourceStartFiber,
-        sourceEndFiber: insertSplice.sourceEndFiber,
-        destinationRibbon: insertSplice.destinationRibbon,
-        destinationStartFiber: insertSplice.destinationStartFiber,
-        destinationEndFiber: insertSplice.destinationEndFiber,
-        ponStart: insertSplice.ponStart ?? null,
-        ponEnd: insertSplice.ponEnd ?? null,
-        isCompleted: insertSplice.isCompleted ?? 0,
-      })
-      .returning();
+    const splice: Splice = {
+      id: generateId(),
+      sourceCableId: insertSplice.sourceCableId,
+      destinationCableId: insertSplice.destinationCableId,
+      sourceRibbon: insertSplice.sourceRibbon,
+      sourceStartFiber: insertSplice.sourceStartFiber,
+      sourceEndFiber: insertSplice.sourceEndFiber,
+      destinationRibbon: insertSplice.destinationRibbon,
+      destinationStartFiber: insertSplice.destinationStartFiber,
+      destinationEndFiber: insertSplice.destinationEndFiber,
+      ponStart: insertSplice.ponStart ?? null,
+      ponEnd: insertSplice.ponEnd ?? null,
+      isCompleted: 0,
+    };
+    this.splices.set(splice.id, splice);
     return splice;
   }
 
   async updateSplice(id: string, partialSplice: Partial<InsertSplice>): Promise<Splice | undefined> {
-    const [splice] = await db
-      .update(splices)
-      .set(partialSplice)
-      .where(eq(splices.id, id))
-      .returning();
-    return splice || undefined;
+    const splice = this.splices.get(id);
+    if (!splice) return undefined;
+
+    const updated: Splice = { ...splice, ...partialSplice };
+    this.splices.set(id, updated);
+    return updated;
   }
 
   async deleteSplice(id: string): Promise<boolean> {
-    const result = await db.delete(splices).where(eq(splices.id, id));
-    return result.rowCount ? result.rowCount > 0 : false;
+    const result = this.splices.delete(id);
+    return result;
   }
 
   async deleteSplicesByCableId(cableId: string): Promise<void> {
-    await db.delete(splices).where(
-      or(
-        eq(splices.sourceCableId, cableId),
-        eq(splices.destinationCableId, cableId)
-      )
-    );
+    const splicesToDelete = Array.from(this.splices.values())
+      .filter(s => s.sourceCableId === cableId || s.destinationCableId === cableId)
+      .map(s => s.id);
+
+    splicesToDelete.forEach(id => this.splices.delete(id));
   }
 
   async checkSpliceConflict(cableId: string, startFiber: number, endFiber: number, excludeSpliceId?: string): Promise<Splice | null> {
-    const allSplices = await db.select().from(splices).where(
-      or(
-        eq(splices.sourceCableId, cableId),
-        eq(splices.destinationCableId, cableId)
-      )
-    );
+    const conflicting = Array.from(this.splices.values()).find(s => {
+      if (excludeSpliceId && s.id === excludeSpliceId) return false;
 
-    for (const splice of allSplices) {
-      if (excludeSpliceId && splice.id === excludeSpliceId) {
-        continue;
-      }
+      const isSourceCable = s.sourceCableId === cableId;
+      const isDestCable = s.destinationCableId === cableId;
 
-      const isSourceCable = splice.sourceCableId === cableId;
-      const spliceStart = isSourceCable ? splice.sourceStartFiber : splice.destinationStartFiber;
-      const spliceEnd = isSourceCable ? splice.sourceEndFiber : splice.destinationEndFiber;
+      if (!isSourceCable && !isDestCable) return false;
 
-      const hasOverlap = !(endFiber < spliceStart || startFiber > spliceEnd);
-      if (hasOverlap) {
-        return splice;
-      }
-    }
+      const spliceStart = isSourceCable ? s.sourceStartFiber : s.destinationStartFiber;
+      const spliceEnd = isSourceCable ? s.sourceEndFiber : s.destinationEndFiber;
 
-    return null;
+      return !(endFiber < spliceStart || startFiber > spliceEnd);
+    });
+
+    return conflicting || null;
   }
 
+  // Save/Load operations
   async getAllSaves(): Promise<Save[]> {
-    return await db.select().from(saves).orderBy(desc(saves.createdAt));
+    return Array.from(this.saves.values())
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
   async createSave(insertSave: InsertSave): Promise<Save> {
-    // First, cleanup old saves if we're at max capacity
+    const save: Save = {
+      id: generateId(),
+      name: insertSave.name,
+      createdAt: new Date().toISOString(),
+      data: insertSave.data,
+    };
+    this.saves.set(save.id, save);
+
+    // Cleanup old saves (keep max 50)
     await this.cleanupOldSaves();
-    
-    const [save] = await db
-      .insert(saves)
-      .values({
-        name: insertSave.name,
-        data: insertSave.data,
-      })
-      .returning();
+
     return save;
   }
 
   async loadSave(id: string): Promise<{ cables: Cable[], circuits: Circuit[] } | undefined> {
-    const [save] = await db.select().from(saves).where(eq(saves.id, id));
+    const save = this.saves.get(id);
     if (!save) return undefined;
-    
+
     try {
-      const data = JSON.parse(save.data);
-      return data;
+      const { cables, circuits } = JSON.parse(save.data);
+      return { cables, circuits };
     } catch (error) {
-      console.error("Error parsing save data:", error);
+      console.error('Failed to parse save data:', error);
       return undefined;
     }
   }
 
   async cleanupOldSaves(): Promise<void> {
-    const MAX_SAVES = 50;
-    const allSaves = await db.select().from(saves).orderBy(desc(saves.createdAt));
-    
-    if (allSaves.length >= MAX_SAVES) {
-      // Delete the oldest save(s) to make room
-      const savesToDelete = allSaves.slice(MAX_SAVES - 1); // Keep MAX_SAVES - 1, delete the rest
-      for (const save of savesToDelete) {
-        await db.delete(saves).where(eq(saves.id, save.id));
-      }
+    const allSaves = await this.getAllSaves();
+    if (allSaves.length > 50) {
+      const savesToDelete = allSaves.slice(50);
+      savesToDelete.forEach(save => this.saves.delete(save.id));
     }
   }
 
   async resetAllData(): Promise<void> {
-    await db.delete(splices);
-    await db.delete(circuits);
-    await db.delete(cables);
+    this.cables.clear();
+    this.circuits.clear();
+    this.splices.clear();
   }
 }
 
-export const storage = new DatabaseStorage();
+// Use in-memory storage instead of Database
+export const storage = new MemStorage();
