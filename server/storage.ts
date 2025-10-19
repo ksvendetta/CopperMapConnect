@@ -20,7 +20,7 @@ export interface IStorage {
   getCircuitsByCableId(cableId: string): Promise<Circuit[]>;
   getCircuit(id: string): Promise<Circuit | undefined>;
   createCircuit(circuit: InsertCircuit): Promise<Circuit>;
-  updateCircuit(id: string, circuit: Partial<InsertCircuit>): Promise<Circuit | undefined>;
+  updateCircuit(id: string, circuit: Partial<Circuit>): Promise<Circuit | undefined>;
   toggleCircuitSpliced(id: string, feedCableId?: string, feedFiberStart?: number, feedFiberEnd?: number): Promise<Circuit | undefined>;
   deleteCircuit(id: string): Promise<boolean>;
   deleteCircuitsByCableId(cableId: string): Promise<void>;

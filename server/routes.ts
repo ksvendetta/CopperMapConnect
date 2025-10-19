@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertCableSchema, insertCircuitSchema, insertSpliceSchema, parseCircuitId, circuitIdsOverlap } from "@shared/schema";
+import { insertCableSchema, insertCircuitSchema, insertSpliceSchema, parseCircuitId, circuitIdsOverlap, type Circuit } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -302,11 +302,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/circuits/:id/toggle-spliced", async (req, res) => {
     try {
       const { feedCableId, feedFiberStart, feedFiberEnd } = req.body;
-      const circuit = await storage.toggleCircuitSpliced(req.params.id, feedCableId, feedFiberStart, feedFiberEnd);
+      
+      // Get the circuit being updated
+      const circuit = await storage.getCircuit(req.params.id);
       if (!circuit) {
         return res.status(404).json({ error: "Circuit not found" });
       }
-      res.json(circuit);
+      
+      // If enabling splice (feedCableId provided), check for conflicts with other spliced circuits
+      if (feedCableId && feedFiberStart !== undefined && feedFiberEnd !== undefined) {
+        // Get all circuits across all cables
+        const allCircuits = await storage.getAllCircuits();
+        
+        // Check if any other spliced circuit is using the same feed cable with overlapping fibers
+        for (const otherCircuit of allCircuits) {
+          // Skip the current circuit being updated
+          if (otherCircuit.id === req.params.id) {
+            continue;
+          }
+          
+          // Skip circuits that are not spliced or don't have feed cable info
+          if (otherCircuit.isSpliced !== 1 || !otherCircuit.feedCableId || 
+              otherCircuit.feedFiberStart === null || otherCircuit.feedFiberEnd === null) {
+            continue;
+          }
+          
+          // Check if using the same feed cable
+          if (otherCircuit.feedCableId === feedCableId) {
+            // Check if fiber ranges overlap
+            const rangesOverlap = feedFiberStart <= otherCircuit.feedFiberEnd && 
+                                  otherCircuit.feedFiberStart <= feedFiberEnd;
+            
+            if (rangesOverlap) {
+              // Get cable names for better error message
+              const feedCable = await storage.getCable(feedCableId);
+              const distCable = await storage.getCable(otherCircuit.cableId);
+              
+              return res.status(400).json({ 
+                error: `Cannot splice: Feed cable "${feedCable?.name}" fibers ${feedFiberStart}-${feedFiberEnd} are already used by circuit "${otherCircuit.circuitId}" on cable "${distCable?.name}"` 
+              });
+            }
+          }
+        }
+      }
+      
+      const updatedCircuit = await storage.toggleCircuitSpliced(req.params.id, feedCableId, feedFiberStart, feedFiberEnd);
+      if (!updatedCircuit) {
+        return res.status(404).json({ error: "Circuit not found" });
+      }
+      res.json(updatedCircuit);
     } catch (error) {
       res.status(500).json({ error: "Failed to toggle circuit spliced status" });
     }
@@ -358,7 +402,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         feedCableId: null,
         feedFiberStart: null,
         feedFiberEnd: null
-      });
+      } as Partial<Circuit>);
       
       // Get all circuits for this cable to recalculate fiber ranges
       const allCircuits = await storage.getCircuitsByCableId(circuit.cableId);
@@ -384,7 +428,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.updateCircuit(circ.id, {
           fiberStart: currentFiberStart,
           fiberEnd: fiberEnd,
-        });
+        } as Partial<Circuit>);
         
         currentFiberStart = fiberEnd + 1;
       }
@@ -428,8 +472,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const swapIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
       const swapCircuit = allCircuits[swapIndex];
       
-      await storage.updateCircuit(circuit.id, { position: swapIndex });
-      await storage.updateCircuit(swapCircuit.id, { position: currentIndex });
+      await storage.updateCircuit(circuit.id, { position: swapIndex } as Partial<Circuit>);
+      await storage.updateCircuit(swapCircuit.id, { position: currentIndex } as Partial<Circuit>);
       
       // Get updated circuits and recalculate fiber ranges
       const updatedCircuits = await storage.getCircuitsByCableId(circuit.cableId);
@@ -448,7 +492,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.updateCircuit(circ.id, {
           fiberStart: currentFiberStart,
           fiberEnd: fiberEnd,
-        });
+        } as Partial<Circuit>);
         
         currentFiberStart = fiberEnd + 1;
       }
@@ -484,7 +528,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           position: i,
           fiberStart: currentFiberStart,
           fiberEnd: fiberEnd,
-        });
+        } as Partial<Circuit>);
         
         currentFiberStart = fiberEnd + 1;
       }
@@ -729,7 +773,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             feedCableId: newFeedCableId,
             feedFiberStart: circuit.feedFiberStart,
             feedFiberEnd: circuit.feedFiberEnd,
-          });
+          } as Partial<Circuit>);
         }
       }
       

@@ -50,7 +50,8 @@ Preferred communication style: Simple, everyday language.
 - **Example:** Distribution circuit "exact,15-20" matches Feed circuit "exact,15-20" (exact match where 15-20 equals 15-20).
 - Automatically extracts Feed cable ID and fiber positions for one-click splicing.
 - Stores `feedCableId`, `feedFiberStart`, `feedFiberEnd` in the circuits table (Distribution circuit's actual fiber range, not Feed range).
-- Error handling with toast messages if no matching Feed circuit is found.
+- **Feed Fiber Conflict Prevention:** System prevents two distribution circuits from splicing to the same feed cable with overlapping fiber positions. For example, if d2's "pon,1-8" is spliced to f1's fibers 1-8, d3's "pon,8-12" cannot splice to f1 because fiber 8 would be used by both.
+- Error handling with toast messages if no matching Feed circuit is found or if feed fibers are already in use.
 - Splice tab displays fiber mappings with color-coded, industry-standard fiber optic colors (12 colors).
 - **Adaptive Splice Display:** Automatically switches between two display modes:
   - **Full Ribbon View:** When all circuits use complete ribbons (fiber counts are multiples of 12), displays one row per ribbon with color-coded ribbon numbers and circuit ranges (e.g., "pon,49-60"). Strand columns are hidden for cleaner visualization.

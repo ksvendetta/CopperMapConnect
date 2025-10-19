@@ -190,7 +190,7 @@ export class SQLiteStorage implements IStorage {
     return circuit;
   }
 
-  async updateCircuit(id: string, partialCircuit: Partial<InsertCircuit>): Promise<Circuit | undefined> {
+  async updateCircuit(id: string, partialCircuit: Partial<Circuit>): Promise<Circuit | undefined> {
     const current = await this.getCircuit(id);
     if (!current) return undefined;
 

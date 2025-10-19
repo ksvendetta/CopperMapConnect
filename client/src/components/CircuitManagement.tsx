@@ -110,7 +110,11 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
         queryClient.invalidateQueries({ queryKey: ["/api/circuits"] });
         toast({ title: "Circuit not found - display refreshed", variant: "destructive" });
       } else {
-        toast({ title: "Failed to toggle splice status", variant: "destructive" });
+        toast({ 
+          title: "Failed to toggle splice status",
+          description: error.message || "An error occurred",
+          variant: "destructive" 
+        });
       }
     },
   });
