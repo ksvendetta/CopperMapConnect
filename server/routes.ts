@@ -295,8 +295,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Update the circuit ID
-      await storage.updateCircuit(req.params.id, { circuitId });
+      // Clear splice data when circuit ID changes (fiber count may have changed)
+      await storage.updateCircuit(req.params.id, { 
+        circuitId,
+        isSpliced: 0,
+        feedCableId: null,
+        feedFiberStart: null,
+        feedFiberEnd: null
+      });
       
       // Get all circuits for this cable to recalculate fiber ranges
       const allCircuits = await storage.getCircuitsByCableId(circuit.cableId);
