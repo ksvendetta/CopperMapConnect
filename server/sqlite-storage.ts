@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 import path from 'path';
-import { type Cable, type InsertCable, type Circuit, type InsertCircuit, type Splice, type InsertSplice, type Save, type InsertSave } from "@shared/schema";
+import { type Cable, type InsertCable, type Circuit, type InsertCircuit, type Splice, type InsertSplice, type Save, type InsertSave, type Settings, type InsertSettings } from "@shared/schema";
 import type { IStorage } from './storage';
 
 // Simple UUID generator
@@ -85,6 +85,19 @@ export class SQLiteStorage implements IStorage {
         createdAt TEXT NOT NULL,
         data TEXT NOT NULL
       )
+    `);
+
+    // Create settings table (single row)
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS settings (
+        id INTEGER PRIMARY KEY DEFAULT 1,
+        spliceMode TEXT NOT NULL DEFAULT 'fiber' CHECK(spliceMode IN ('fiber', 'copper'))
+      )
+    `);
+
+    // Insert default settings if not exists
+    this.db.exec(`
+      INSERT OR IGNORE INTO settings (id, spliceMode) VALUES (1, 'fiber')
     `);
 
     // Create indexes for better performance
@@ -387,6 +400,24 @@ export class SQLiteStorage implements IStorage {
       )
     `);
     stmt.run();
+  }
+
+  // Settings operations
+  async getSettings(): Promise<Settings> {
+    const stmt = this.db.prepare('SELECT * FROM settings WHERE id = 1');
+    const settings = stmt.get() as Settings | undefined;
+    
+    // Return default if not found (should never happen due to INSERT OR IGNORE)
+    return settings || { id: 1, spliceMode: "fiber" };
+  }
+
+  async updateSettings(insertSettings: InsertSettings): Promise<Settings> {
+    const stmt = this.db.prepare(`
+      UPDATE settings SET spliceMode = @spliceMode WHERE id = 1
+    `);
+    stmt.run(insertSettings);
+    
+    return this.getSettings();
   }
 
   async resetAllData(): Promise<void> {
