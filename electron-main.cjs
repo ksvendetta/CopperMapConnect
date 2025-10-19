@@ -33,24 +33,15 @@ function createWindow() {
 }
 
 function startServer() {
-  // Start the Node.js server
-  const isDev = process.env.NODE_ENV === 'development';
+  // Start the Node.js server in production mode
+  // Always use the built server from dist/index.js
+  const serverPath = path.join(__dirname, 'dist', 'index.js');
   
-  if (isDev) {
-    // In development, use tsx to run TypeScript
-    serverProcess = spawn('npx', ['tsx', 'server/index.ts'], {
-      stdio: 'inherit',
-      shell: true,
-      env: { ...process.env, NODE_ENV: 'production' }
-    });
-  } else {
-    // In production, the server will be bundled or pre-built
-    serverProcess = spawn('node', ['server/index.js'], {
-      stdio: 'inherit',
-      shell: true,
-      env: { ...process.env, NODE_ENV: 'production' }
-    });
-  }
+  serverProcess = spawn('node', [serverPath], {
+    stdio: 'inherit',
+    shell: true,
+    env: { ...process.env, NODE_ENV: 'production' }
+  });
 
   serverProcess.on('error', (err) => {
     console.error('Failed to start server:', err);
