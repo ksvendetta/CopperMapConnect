@@ -137,6 +137,14 @@ export default function Home() {
       circuits: allCircuits,
     };
     
+    // Debug logging
+    console.log('Saving project data:', {
+      cablesCount: cables.length,
+      circuitsCount: allCircuits.length,
+      cables,
+      circuits: allCircuits
+    });
+    
     const dataStr = JSON.stringify(projectData, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     
@@ -149,7 +157,10 @@ export default function Home() {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     
-    toast({ title: "Project saved to file" });
+    toast({ 
+      title: "Project saved", 
+      description: `${cables.length} cable(s) and ${allCircuits.length} circuit(s) saved to file` 
+    });
   };
 
   const handleLoad = () => {
