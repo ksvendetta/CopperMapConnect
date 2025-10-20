@@ -455,6 +455,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Circuit not found" });
       }
       
+      // Before deleting, check if any Distribution circuits are spliced to this circuit
+      // If so, un-splice them to prevent stale references
+      const allCircuits = await storage.getAllCircuits();
+      const circuitsToUnsplice = allCircuits.filter((c: Circuit) => c.feedCableId === circuit.cableId);
+      
+      for (const distCircuit of circuitsToUnsplice) {
+        await storage.updateCircuit(distCircuit.id, {
+          isSpliced: 0,
+          feedCableId: null,
+          feedFiberStart: null,
+          feedFiberEnd: null,
+        } as Partial<Circuit>);
+      }
+      
       // Delete the circuit
       await storage.deleteCircuit(req.params.id);
       
