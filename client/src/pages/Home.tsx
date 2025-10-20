@@ -425,18 +425,18 @@ export default function Home() {
                               
                               // Fiber optic color codes (12 colors, repeating pattern)
                               const fiberColors = [
-                                { name: "blue", bg: "bg-blue-500", text: "text-white" },
-                                { name: "orange", bg: "bg-orange-500", text: "text-white" },
-                                { name: "green", bg: "bg-green-600", text: "text-white" },
-                                { name: "brown", bg: "bg-amber-700", text: "text-white" },
-                                { name: "slate", bg: "bg-slate-500", text: "text-white" },
-                                { name: "white", bg: "bg-white", text: "text-black" },
-                                { name: "red", bg: "bg-red-600", text: "text-white" },
-                                { name: "black", bg: "bg-black", text: "text-white" },
-                                { name: "yellow", bg: "bg-yellow-400", text: "text-black" },
-                                { name: "violet", bg: "bg-purple-600", text: "text-white" },
-                                { name: "pink", bg: "bg-pink-500", text: "text-white" },
-                                { name: "aqua", bg: "bg-cyan-400", text: "text-black" },
+                                { name: "blue", bg: "bg-blue-500", text: "text-white", colorClass: "text-blue-500" },
+                                { name: "orange", bg: "bg-orange-500", text: "text-white", colorClass: "text-orange-500" },
+                                { name: "green", bg: "bg-green-600", text: "text-white", colorClass: "text-green-600" },
+                                { name: "brown", bg: "bg-amber-700", text: "text-white", colorClass: "text-amber-700" },
+                                { name: "slate", bg: "bg-slate-500", text: "text-white", colorClass: "text-slate-500" },
+                                { name: "white", bg: "bg-white", text: "text-black", colorClass: "text-slate-700" },
+                                { name: "red", bg: "bg-red-600", text: "text-white", colorClass: "text-red-600" },
+                                { name: "black", bg: "bg-black", text: "text-white", colorClass: "text-slate-900" },
+                                { name: "yellow", bg: "bg-yellow-400", text: "text-black", colorClass: "text-yellow-500" },
+                                { name: "violet", bg: "bg-purple-600", text: "text-white", colorClass: "text-purple-600" },
+                                { name: "pink", bg: "bg-pink-500", text: "text-white", colorClass: "text-pink-500" },
+                                { name: "aqua", bg: "bg-cyan-400", text: "text-black", colorClass: "text-cyan-500" },
                               ];
                               
                               const ribbonSize = 12;
@@ -515,17 +515,17 @@ export default function Home() {
                                       <TableCell className="text-center font-mono text-sm">{feedCable.name} - {feedCable.fiberCount}</TableCell>
                                       <TableCell className="text-center">
                                         <div className="inline-flex gap-0 items-center justify-center">
-                                          <span className={`inline-block px-2 py-1 rounded border-2 border-black ${feedRibbonColor.bg} ${feedRibbonColor.text} font-mono font-semibold text-xs`}>
+                                          <span className={`inline-block px-2 py-1 rounded border-2 ${feedRibbonColor.colorClass} font-mono font-semibold text-xs`} style={{ borderColor: 'currentColor' }}>
                                             R{currentFeedRibbon}
                                           </span>
                                           <span className="font-mono font-semibold text-xs px-0.5">:</span>
-                                          <span className={`inline-block px-2 py-1 rounded border-2 border-black ${feedStrandStartColor.bg} ${feedStrandStartColor.text} font-mono font-semibold text-xs`}>
+                                          <span className={`inline-block px-2 py-1 rounded border-2 ${feedStrandStartColor.colorClass} font-mono font-semibold text-xs`} style={{ borderColor: 'currentColor' }}>
                                             {feedStrandStart}
                                           </span>
                                           {feedStrandStart !== feedStrandEnd && (
                                             <>
                                               <span className="font-mono font-semibold text-xs px-0.5">-</span>
-                                              <span className={`inline-block px-2 py-1 rounded border-2 border-black ${feedStrandEndColor.bg} ${feedStrandEndColor.text} font-mono font-semibold text-xs`}>
+                                              <span className={`inline-block px-2 py-1 rounded border-2 ${feedStrandEndColor.colorClass} font-mono font-semibold text-xs`} style={{ borderColor: 'currentColor' }}>
                                                 {feedStrandEnd}
                                               </span>
                                             </>
@@ -535,17 +535,17 @@ export default function Home() {
                                       <TableCell className="text-center font-mono font-semibold">{circuitPrefix},{circuitStart}-{circuitEnd}</TableCell>
                                       <TableCell className="text-center">
                                         <div className="inline-flex gap-0 items-center justify-center">
-                                          <span className={`inline-block px-2 py-1 rounded border-2 border-black ${distRibbonColor.bg} ${distRibbonColor.text} font-mono font-semibold text-xs`}>
+                                          <span className={`inline-block px-2 py-1 rounded border-2 ${distRibbonColor.colorClass} font-mono font-semibold text-xs`} style={{ borderColor: 'currentColor' }}>
                                             R{currentDistRibbon}
                                           </span>
                                           <span className="font-mono font-semibold text-xs px-0.5">:</span>
-                                          <span className={`inline-block px-2 py-1 rounded border-2 border-black ${distStrandStartColor.bg} ${distStrandStartColor.text} font-mono font-semibold text-xs`}>
+                                          <span className={`inline-block px-2 py-1 rounded border-2 ${distStrandStartColor.colorClass} font-mono font-semibold text-xs`} style={{ borderColor: 'currentColor' }}>
                                             {distStrandStart}
                                           </span>
                                           {distStrandStart !== distStrandEnd && (
                                             <>
                                               <span className="font-mono font-semibold text-xs px-0.5">-</span>
-                                              <span className={`inline-block px-2 py-1 rounded border-2 border-black ${distStrandEndColor.bg} ${distStrandEndColor.text} font-mono font-semibold text-xs`}>
+                                              <span className={`inline-block px-2 py-1 rounded border-2 ${distStrandEndColor.colorClass} font-mono font-semibold text-xs`} style={{ borderColor: 'currentColor' }}>
                                                 {distStrandEnd}
                                               </span>
                                             </>
@@ -583,13 +583,13 @@ export default function Home() {
                                       <TableCell className="text-center font-mono text-sm">{feedCable.name} - {feedCable.fiberCount}</TableCell>
                                       <TableCell className="text-center font-mono font-semibold">R{feedRibbon}</TableCell>
                                       <TableCell className="text-center">
-                                        <div className={`inline-block px-3 py-1 rounded border-2 border-black ${feedColor.bg} ${feedColor.text} font-mono font-semibold`}>
+                                        <div className={`inline-block px-3 py-1 rounded border-2 ${feedColor.colorClass} font-mono font-semibold`} style={{ borderColor: 'currentColor' }}>
                                           {feedStrand}
                                         </div>
                                       </TableCell>
                                       <TableCell className="text-center font-mono font-semibold">{circuitPrefix},{circuitNumber}</TableCell>
                                       <TableCell className="text-center">
-                                        <div className={`inline-block px-3 py-1 rounded border-2 border-black ${distColor.bg} ${distColor.text} font-mono font-semibold`}>
+                                        <div className={`inline-block px-3 py-1 rounded border-2 ${distColor.colorClass} font-mono font-semibold`} style={{ borderColor: 'currentColor' }}>
                                           {distStrand}
                                         </div>
                                       </TableCell>

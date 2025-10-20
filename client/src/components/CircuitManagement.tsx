@@ -486,11 +486,10 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
       }
       
       return (
-        <span className="flex items-center gap-2 flex-wrap">
+        <span className="flex flex-col gap-1">
           {parts.map((part, index) => (
-            <span key={index} className="flex items-center gap-1">
+            <span key={index}>
               {part}
-              {index < parts.length - 1 && <span className="mx-1">/</span>}
             </span>
           ))}
         </span>
