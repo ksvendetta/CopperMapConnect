@@ -138,7 +138,11 @@ export async function apiRequest(
         result = { success: true };
       }
     } else if (method === 'DELETE') {
-      if (resource === 'cables') {
+      if (resource === 'reset') {
+        // Reset all data in IndexedDB
+        await storage.resetAllData();
+        result = { success: true };
+      } else if (resource === 'cables') {
         await storage.deleteCable(id);
         result = { success: true };
       } else if (resource === 'circuits') {
@@ -148,9 +152,6 @@ export async function apiRequest(
         if (id === 'load') {
           const { id: saveId } = data as any;
           await storage.loadSave(saveId);
-          result = { success: true };
-        } else if (url.includes('/reset')) {
-          await storage.resetAllData();
           result = { success: true };
         } else {
           await storage.deleteSave(id);
