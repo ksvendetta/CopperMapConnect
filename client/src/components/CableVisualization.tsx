@@ -1,4 +1,4 @@
-import { Cable, Splice, getRibbonNumber } from "@shared/schema";
+import { Cable, Splice, getBinderNumber } from "@shared/schema";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { FiberRibbon } from "./FiberRibbon";
 import { Badge } from "@/components/ui/badge";
@@ -10,23 +10,23 @@ interface CableVisualizationProps {
 }
 
 export function CableVisualization({ cable, splices, position }: CableVisualizationProps) {
-  const ribbonCount = Math.ceil(cable.fiberCount / cable.ribbonSize);
-  const ribbons = Array.from({ length: ribbonCount }, (_, i) => i + 1);
+  const binderCount = Math.ceil(cable.fiberCount / cable.ribbonSize);
+  const binders = Array.from({ length: binderCount }, (_, i) => i + 1);
 
   const relatedSplices = splices.filter(
     (s) => s.sourceCableId === cable.id || s.destinationCableId === cable.id
   );
 
-  const highlightedFibers = new Set<number>();
+  const highlightedPairs = new Set<number>();
   relatedSplices.forEach((splice) => {
     if (splice.sourceCableId === cable.id) {
       for (let i = splice.sourceStartFiber; i <= splice.sourceEndFiber; i++) {
-        highlightedFibers.add(i);
+        highlightedPairs.add(i);
       }
     }
     if (splice.destinationCableId === cable.id) {
       for (let i = splice.destinationStartFiber; i <= splice.destinationEndFiber; i++) {
-        highlightedFibers.add(i);
+        highlightedPairs.add(i);
       }
     }
   });
@@ -49,15 +49,15 @@ export function CableVisualization({ cable, splices, position }: CableVisualizat
         </div>
       </CardHeader>
       <CardContent className="space-y-2">
-        {ribbons.map((ribbonNum) => (
+        {binders.map((binderNum) => (
           <FiberRibbon
-            key={ribbonNum}
+            key={binderNum}
             cableId={cable.id}
-            ribbonNumber={ribbonNum}
-            startFiber={1}
-            endFiber={cable.fiberCount}
-            ribbonSize={cable.ribbonSize}
-            highlightedFibers={Array.from(highlightedFibers)}
+            binderNumber={binderNum}
+            startPair={1}
+            endPair={cable.fiberCount}
+            binderSize={cable.ribbonSize}
+            highlightedPairs={Array.from(highlightedPairs)}
           />
         ))}
         
@@ -68,14 +68,14 @@ export function CableVisualization({ cable, splices, position }: CableVisualizat
               const ponRange = splice.ponStart && splice.ponEnd
                 ? `pon,${splice.ponStart}-${splice.ponEnd}`
                 : null;
-              const fiberRange = isSource
+              const pairRange = isSource
                 ? `${splice.sourceStartFiber}-${splice.sourceEndFiber}`
                 : `${splice.destinationStartFiber}-${splice.destinationEndFiber}`;
 
               return (
                 <div key={splice.id} className="text-[10px] font-mono text-muted-foreground">
                   {ponRange && <div data-testid={`text-viz-pon-${splice.id}`}>{ponRange}</div>}
-                  <div data-testid={`text-viz-fiber-range-${splice.id}`}>{fiberRange}</div>
+                  <div data-testid={`text-viz-pair-range-${splice.id}`}>{pairRange}</div>
                 </div>
               );
             })}
