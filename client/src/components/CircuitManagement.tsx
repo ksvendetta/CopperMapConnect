@@ -347,11 +347,11 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
 
   // 25-pair copper cable color codes (tip/ring combinations with actual color values)
   const pairColors = [
-    { tip: "white", ring: "blue", tipColor: "#64748b", ringColor: "#3b82f6" },
-    { tip: "white", ring: "orange", tipColor: "#64748b", ringColor: "#f97316" },
-    { tip: "white", ring: "green", tipColor: "#64748b", ringColor: "#16a34a" },
-    { tip: "white", ring: "brown", tipColor: "#64748b", ringColor: "#b45309" },
-    { tip: "white", ring: "slate", tipColor: "#64748b", ringColor: "#64748b" },
+    { tip: "white", ring: "blue", tipColor: "#f1f5f9", ringColor: "#3b82f6" },
+    { tip: "white", ring: "orange", tipColor: "#f1f5f9", ringColor: "#f97316" },
+    { tip: "white", ring: "green", tipColor: "#f1f5f9", ringColor: "#16a34a" },
+    { tip: "white", ring: "brown", tipColor: "#f1f5f9", ringColor: "#b45309" },
+    { tip: "white", ring: "slate", tipColor: "#f1f5f9", ringColor: "#64748b" },
     { tip: "red", ring: "blue", tipColor: "#dc2626", ringColor: "#3b82f6" },
     { tip: "red", ring: "orange", tipColor: "#dc2626", ringColor: "#f97316" },
     { tip: "red", ring: "green", tipColor: "#dc2626", ringColor: "#16a34a" },
