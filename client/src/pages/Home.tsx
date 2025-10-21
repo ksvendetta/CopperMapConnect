@@ -474,31 +474,31 @@ export default function Home() {
                               
                               // 25-pair copper cable color codes (tip/ring combinations)
                               const pairColors = [
-                                { pair: 1, tip: "white", ring: "blue", bg: "bg-blue-500", text: "text-white", colorClass: "text-blue-500" },
-                                { pair: 2, tip: "white", ring: "orange", bg: "bg-orange-500", text: "text-white", colorClass: "text-orange-500" },
-                                { pair: 3, tip: "white", ring: "green", bg: "bg-green-600", text: "text-white", colorClass: "text-green-600" },
-                                { pair: 4, tip: "white", ring: "brown", bg: "bg-amber-700", text: "text-white", colorClass: "text-amber-700" },
-                                { pair: 5, tip: "white", ring: "slate", bg: "bg-slate-500", text: "text-white", colorClass: "text-slate-500" },
-                                { pair: 6, tip: "red", ring: "blue", bg: "bg-blue-500", text: "text-white", colorClass: "text-blue-500" },
-                                { pair: 7, tip: "red", ring: "orange", bg: "bg-orange-500", text: "text-white", colorClass: "text-orange-500" },
-                                { pair: 8, tip: "red", ring: "green", bg: "bg-green-600", text: "text-white", colorClass: "text-green-600" },
-                                { pair: 9, tip: "red", ring: "brown", bg: "bg-amber-700", text: "text-white", colorClass: "text-amber-700" },
-                                { pair: 10, tip: "red", ring: "slate", bg: "bg-slate-500", text: "text-white", colorClass: "text-slate-500" },
-                                { pair: 11, tip: "black", ring: "blue", bg: "bg-blue-500", text: "text-white", colorClass: "text-blue-500" },
-                                { pair: 12, tip: "black", ring: "orange", bg: "bg-orange-500", text: "text-white", colorClass: "text-orange-500" },
-                                { pair: 13, tip: "black", ring: "green", bg: "bg-green-600", text: "text-white", colorClass: "text-green-600" },
-                                { pair: 14, tip: "black", ring: "brown", bg: "bg-amber-700", text: "text-white", colorClass: "text-amber-700" },
-                                { pair: 15, tip: "black", ring: "slate", bg: "bg-slate-500", text: "text-white", colorClass: "text-slate-500" },
-                                { pair: 16, tip: "yellow", ring: "blue", bg: "bg-blue-500", text: "text-white", colorClass: "text-blue-500" },
-                                { pair: 17, tip: "yellow", ring: "orange", bg: "bg-orange-500", text: "text-white", colorClass: "text-orange-500" },
-                                { pair: 18, tip: "yellow", ring: "green", bg: "bg-green-600", text: "text-white", colorClass: "text-green-600" },
-                                { pair: 19, tip: "yellow", ring: "brown", bg: "bg-amber-700", text: "text-white", colorClass: "text-amber-700" },
-                                { pair: 20, tip: "yellow", ring: "slate", bg: "bg-slate-500", text: "text-white", colorClass: "text-slate-500" },
-                                { pair: 21, tip: "violet", ring: "blue", bg: "bg-purple-600", text: "text-white", colorClass: "text-purple-600" },
-                                { pair: 22, tip: "violet", ring: "orange", bg: "bg-orange-500", text: "text-white", colorClass: "text-orange-500" },
-                                { pair: 23, tip: "violet", ring: "green", bg: "bg-green-600", text: "text-white", colorClass: "text-green-600" },
-                                { pair: 24, tip: "violet", ring: "brown", bg: "bg-amber-700", text: "text-white", colorClass: "text-amber-700" },
-                                { pair: 25, tip: "violet", ring: "slate", bg: "bg-slate-500", text: "text-white", colorClass: "text-slate-500" },
+                                { pair: 1, tip: "white", ring: "blue", tipBg: "bg-slate-700", tipText: "text-slate-700", ringBg: "bg-blue-500", ringText: "text-white" },
+                                { pair: 2, tip: "white", ring: "orange", tipBg: "bg-slate-700", tipText: "text-slate-700", ringBg: "bg-orange-500", ringText: "text-white" },
+                                { pair: 3, tip: "white", ring: "green", tipBg: "bg-slate-700", tipText: "text-slate-700", ringBg: "bg-green-600", ringText: "text-white" },
+                                { pair: 4, tip: "white", ring: "brown", tipBg: "bg-slate-700", tipText: "text-slate-700", ringBg: "bg-amber-700", ringText: "text-white" },
+                                { pair: 5, tip: "white", ring: "slate", tipBg: "bg-slate-700", tipText: "text-slate-700", ringBg: "bg-slate-500", ringText: "text-white" },
+                                { pair: 6, tip: "red", ring: "blue", tipBg: "bg-red-600", tipText: "text-red-600", ringBg: "bg-blue-500", ringText: "text-white" },
+                                { pair: 7, tip: "red", ring: "orange", tipBg: "bg-red-600", tipText: "text-red-600", ringBg: "bg-orange-500", ringText: "text-white" },
+                                { pair: 8, tip: "red", ring: "green", tipBg: "bg-red-600", tipText: "text-red-600", ringBg: "bg-green-600", ringText: "text-white" },
+                                { pair: 9, tip: "red", ring: "brown", tipBg: "bg-red-600", tipText: "text-red-600", ringBg: "bg-amber-700", ringText: "text-white" },
+                                { pair: 10, tip: "red", ring: "slate", tipBg: "bg-red-600", tipText: "text-red-600", ringBg: "bg-slate-500", ringText: "text-white" },
+                                { pair: 11, tip: "black", ring: "blue", tipBg: "bg-slate-900", tipText: "text-slate-900", ringBg: "bg-blue-500", ringText: "text-white" },
+                                { pair: 12, tip: "black", ring: "orange", tipBg: "bg-slate-900", tipText: "text-slate-900", ringBg: "bg-orange-500", ringText: "text-white" },
+                                { pair: 13, tip: "black", ring: "green", tipBg: "bg-slate-900", tipText: "text-slate-900", ringBg: "bg-green-600", ringText: "text-white" },
+                                { pair: 14, tip: "black", ring: "brown", tipBg: "bg-slate-900", tipText: "text-slate-900", ringBg: "bg-amber-700", ringText: "text-white" },
+                                { pair: 15, tip: "black", ring: "slate", tipBg: "bg-slate-900", tipText: "text-slate-900", ringBg: "bg-slate-500", ringText: "text-white" },
+                                { pair: 16, tip: "yellow", ring: "blue", tipBg: "bg-yellow-400", tipText: "text-yellow-500", ringBg: "bg-blue-500", ringText: "text-white" },
+                                { pair: 17, tip: "yellow", ring: "orange", tipBg: "bg-yellow-400", tipText: "text-yellow-500", ringBg: "bg-orange-500", ringText: "text-white" },
+                                { pair: 18, tip: "yellow", ring: "green", tipBg: "bg-yellow-400", tipText: "text-yellow-500", ringBg: "bg-green-600", ringText: "text-white" },
+                                { pair: 19, tip: "yellow", ring: "brown", tipBg: "bg-yellow-400", tipText: "text-yellow-500", ringBg: "bg-amber-700", ringText: "text-white" },
+                                { pair: 20, tip: "yellow", ring: "slate", tipBg: "bg-yellow-400", tipText: "text-yellow-500", ringBg: "bg-slate-500", ringText: "text-white" },
+                                { pair: 21, tip: "violet", ring: "blue", tipBg: "bg-purple-600", tipText: "text-purple-600", ringBg: "bg-blue-500", ringText: "text-white" },
+                                { pair: 22, tip: "violet", ring: "orange", tipBg: "bg-purple-600", tipText: "text-purple-600", ringBg: "bg-orange-500", ringText: "text-white" },
+                                { pair: 23, tip: "violet", ring: "green", tipBg: "bg-purple-600", tipText: "text-purple-600", ringBg: "bg-green-600", ringText: "text-white" },
+                                { pair: 24, tip: "violet", ring: "brown", tipBg: "bg-purple-600", tipText: "text-purple-600", ringBg: "bg-amber-700", ringText: "text-white" },
+                                { pair: 25, tip: "violet", ring: "slate", tipBg: "bg-purple-600", tipText: "text-purple-600", ringBg: "bg-slate-500", ringText: "text-white" },
                               ];
                               
                               const binderSize = 25;
@@ -607,12 +607,16 @@ export default function Home() {
                                   binderRows.push(
                                     <TableRow key={`${circuit.id}-segment-${currentDistPair}`} className={rowBgColor} data-testid={`row-binder-${circuit.id}-${currentDistPair}`}>
                                       <TableCell className="text-center font-mono text-sm">{feedCable.name} - {feedCable.fiberCount}</TableCell>
-                                      <TableCell className={`text-center font-mono font-semibold ${feedBinderColor.colorClass}`}>
-                                        B{currentFeedBinder}:{feedPairPosStart}{feedPairPosStart !== feedPairPosEnd ? `-${feedPairPosEnd}` : ''}
+                                      <TableCell className="text-center font-mono font-semibold">
+                                        <span className={feedBinderColor.tipText}>B</span>
+                                        <span className={feedBinderColor.ringText}>{currentFeedBinder}</span>
+                                        :{feedPairPosStart}{feedPairPosStart !== feedPairPosEnd ? `-${feedPairPosEnd}` : ''}
                                       </TableCell>
                                       <TableCell className="text-center font-mono font-semibold">{circuitPrefix},{circuitStart}-{circuitEnd}</TableCell>
-                                      <TableCell className={`text-center font-mono font-semibold ${distBinderColor.colorClass}`}>
-                                        B{currentDistBinder}:{distPairPosStart}{distPairPosStart !== distPairPosEnd ? `-${distPairPosEnd}` : ''}
+                                      <TableCell className="text-center font-mono font-semibold">
+                                        <span className={distBinderColor.tipText}>B</span>
+                                        <span className={distBinderColor.ringText}>{currentDistBinder}</span>
+                                        :{distPairPosStart}{distPairPosStart !== distPairPosEnd ? `-${distPairPosEnd}` : ''}
                                       </TableCell>
                                       <TableCell className="text-center font-mono text-sm">{distributionCable?.name} - {distributionCable?.fiberCount}</TableCell>
                                     </TableRow>
@@ -654,22 +658,31 @@ export default function Home() {
                                   const feedBinderColor = getColorForBinder(feedBinder);
                                   const distBinderColor = getColorForBinder(distBinder);
                                   
+                                  const feedBorderClass = feedColor.tipBg.replace('bg-', 'border-');
+                                  const distBorderClass = distColor.tipBg.replace('bg-', 'border-');
+                                  
                                   pairRows.push(
                                     <TableRow key={`${circuit.id}-pair-${i}`} className={rowBgColor} data-testid={`row-pair-${circuit.id}-${i}`}>
                                       <TableCell className="text-center font-mono text-sm">{feedCable.name} - {feedCable.fiberCount}</TableCell>
-                                      <TableCell className={`text-center font-mono font-semibold ${feedBinderColor.colorClass}`}>B{feedBinder}</TableCell>
+                                      <TableCell className="text-center font-mono font-semibold">
+                                        <span className={feedBinderColor.tipText}>B</span>
+                                        <span className={feedBinderColor.ringText}>{feedBinder}</span>
+                                      </TableCell>
                                       <TableCell className="text-center">
-                                        <div className={`inline-block px-3 py-1 rounded border-2 border-black ${feedColor.bg} ${feedColor.text} font-mono font-semibold`}>
+                                        <div className={`inline-block px-3 py-1 rounded border-2 ${feedBorderClass} ${feedColor.ringBg} ${feedColor.tipText} font-mono font-semibold`}>
                                           {feedPairInBinder}
                                         </div>
                                       </TableCell>
                                       <TableCell className="text-center font-mono font-semibold">{circuitPrefix},{circuitNumber}</TableCell>
                                       <TableCell className="text-center">
-                                        <div className={`inline-block px-3 py-1 rounded border-2 border-black ${distColor.bg} ${distColor.text} font-mono font-semibold`}>
+                                        <div className={`inline-block px-3 py-1 rounded border-2 ${distBorderClass} ${distColor.ringBg} ${distColor.tipText} font-mono font-semibold`}>
                                           {distPairInBinder}
                                         </div>
                                       </TableCell>
-                                      <TableCell className={`text-center font-mono font-semibold ${distBinderColor.colorClass}`}>B{distBinder}</TableCell>
+                                      <TableCell className="text-center font-mono font-semibold">
+                                        <span className={distBinderColor.tipText}>B</span>
+                                        <span className={distBinderColor.ringText}>{distBinder}</span>
+                                      </TableCell>
                                       <TableCell className="text-center font-mono text-sm">{distributionCable?.name} - {distributionCable?.fiberCount}</TableCell>
                                     </TableRow>
                                   );
