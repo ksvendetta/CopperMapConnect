@@ -604,18 +604,44 @@ export default function Home() {
                                   const feedBinderColor = getColorForBinder(currentFeedBinder);
                                   const distBinderColor = getColorForBinder(currentDistBinder);
                                   
+                                  const feedBinderTipColor = feedBinderColor.tipBg.replace('bg-', '');
+                                  const feedBinderRingColor = feedBinderColor.ringBg.replace('bg-', '');
+                                  const distBinderTipColor = distBinderColor.tipBg.replace('bg-', '');
+                                  const distBinderRingColor = distBinderColor.ringBg.replace('bg-', '');
+                                  
+                                  const feedBinderGradient = {
+                                    background: `linear-gradient(to right, 
+                                      rgb(var(--${feedBinderTipColor})) 0%, 
+                                      rgb(var(--${feedBinderTipColor})) 33%, 
+                                      rgb(var(--${feedBinderRingColor})) 33%, 
+                                      rgb(var(--${feedBinderRingColor})) 67%, 
+                                      rgb(var(--${feedBinderTipColor})) 67%, 
+                                      rgb(var(--${feedBinderTipColor})) 100%)`
+                                  };
+                                  const distBinderGradient = {
+                                    background: `linear-gradient(to right, 
+                                      rgb(var(--${distBinderTipColor})) 0%, 
+                                      rgb(var(--${distBinderTipColor})) 33%, 
+                                      rgb(var(--${distBinderRingColor})) 33%, 
+                                      rgb(var(--${distBinderRingColor})) 67%, 
+                                      rgb(var(--${distBinderTipColor})) 67%, 
+                                      rgb(var(--${distBinderTipColor})) 100%)`
+                                  };
+                                  
                                   binderRows.push(
                                     <TableRow key={`${circuit.id}-segment-${currentDistPair}`} className={rowBgColor} data-testid={`row-binder-${circuit.id}-${currentDistPair}`}>
                                       <TableCell className="text-center font-mono text-sm">{feedCable.name} - {feedCable.fiberCount}</TableCell>
                                       <TableCell className="text-center font-mono font-semibold">
-                                        <span className={feedBinderColor.tipText}>B</span>
-                                        <span className={feedBinderColor.ringText}>{currentFeedBinder}</span>
+                                        <span className="inline-block px-2 py-0.5 rounded border-2 border-black text-black font-mono font-semibold text-xs" style={feedBinderGradient}>
+                                          B{currentFeedBinder}
+                                        </span>
                                         :{feedPairPosStart}{feedPairPosStart !== feedPairPosEnd ? `-${feedPairPosEnd}` : ''}
                                       </TableCell>
                                       <TableCell className="text-center font-mono font-semibold">{circuitPrefix},{circuitStart}-{circuitEnd}</TableCell>
                                       <TableCell className="text-center font-mono font-semibold">
-                                        <span className={distBinderColor.tipText}>B</span>
-                                        <span className={distBinderColor.ringText}>{currentDistBinder}</span>
+                                        <span className="inline-block px-2 py-0.5 rounded border-2 border-black text-black font-mono font-semibold text-xs" style={distBinderGradient}>
+                                          B{currentDistBinder}
+                                        </span>
                                         :{distPairPosStart}{distPairPosStart !== distPairPosEnd ? `-${distPairPosEnd}` : ''}
                                       </TableCell>
                                       <TableCell className="text-center font-mono text-sm">{distributionCable?.name} - {distributionCable?.fiberCount}</TableCell>
@@ -658,30 +684,75 @@ export default function Home() {
                                   const feedBinderColor = getColorForBinder(feedBinder);
                                   const distBinderColor = getColorForBinder(distBinder);
                                   
-                                  const feedBorderClass = feedColor.tipBg.replace('bg-', 'border-');
-                                  const distBorderClass = distColor.tipBg.replace('bg-', 'border-');
+                                  const feedTipColor = feedColor.tipBg.replace('bg-', '');
+                                  const feedRingColor = feedColor.ringBg.replace('bg-', '');
+                                  const distTipColor = distColor.tipBg.replace('bg-', '');
+                                  const distRingColor = distColor.ringBg.replace('bg-', '');
+                                  const feedBinderTipColor = feedBinderColor.tipBg.replace('bg-', '');
+                                  const feedBinderRingColor = feedBinderColor.ringBg.replace('bg-', '');
+                                  const distBinderTipColor = distBinderColor.tipBg.replace('bg-', '');
+                                  const distBinderRingColor = distBinderColor.ringBg.replace('bg-', '');
+                                  
+                                  const feedGradient = {
+                                    background: `linear-gradient(to right, 
+                                      rgb(var(--${feedTipColor})) 0%, 
+                                      rgb(var(--${feedTipColor})) 33%, 
+                                      rgb(var(--${feedRingColor})) 33%, 
+                                      rgb(var(--${feedRingColor})) 67%, 
+                                      rgb(var(--${feedTipColor})) 67%, 
+                                      rgb(var(--${feedTipColor})) 100%)`
+                                  };
+                                  const distGradient = {
+                                    background: `linear-gradient(to right, 
+                                      rgb(var(--${distTipColor})) 0%, 
+                                      rgb(var(--${distTipColor})) 33%, 
+                                      rgb(var(--${distRingColor})) 33%, 
+                                      rgb(var(--${distRingColor})) 67%, 
+                                      rgb(var(--${distTipColor})) 67%, 
+                                      rgb(var(--${distTipColor})) 100%)`
+                                  };
+                                  const feedBinderGradient = {
+                                    background: `linear-gradient(to right, 
+                                      rgb(var(--${feedBinderTipColor})) 0%, 
+                                      rgb(var(--${feedBinderTipColor})) 33%, 
+                                      rgb(var(--${feedBinderRingColor})) 33%, 
+                                      rgb(var(--${feedBinderRingColor})) 67%, 
+                                      rgb(var(--${feedBinderTipColor})) 67%, 
+                                      rgb(var(--${feedBinderTipColor})) 100%)`
+                                  };
+                                  const distBinderGradient = {
+                                    background: `linear-gradient(to right, 
+                                      rgb(var(--${distBinderTipColor})) 0%, 
+                                      rgb(var(--${distBinderTipColor})) 33%, 
+                                      rgb(var(--${distBinderRingColor})) 33%, 
+                                      rgb(var(--${distBinderRingColor})) 67%, 
+                                      rgb(var(--${distBinderTipColor})) 67%, 
+                                      rgb(var(--${distBinderTipColor})) 100%)`
+                                  };
                                   
                                   pairRows.push(
                                     <TableRow key={`${circuit.id}-pair-${i}`} className={rowBgColor} data-testid={`row-pair-${circuit.id}-${i}`}>
                                       <TableCell className="text-center font-mono text-sm">{feedCable.name} - {feedCable.fiberCount}</TableCell>
                                       <TableCell className="text-center font-mono font-semibold">
-                                        <span className={feedBinderColor.tipText}>B</span>
-                                        <span className={feedBinderColor.ringText}>{feedBinder}</span>
+                                        <span className="inline-block px-2 py-0.5 rounded border-2 border-black text-black font-mono font-semibold text-xs" style={feedBinderGradient}>
+                                          B{feedBinder}
+                                        </span>
                                       </TableCell>
                                       <TableCell className="text-center">
-                                        <div className={`inline-block px-3 py-1 rounded border-2 ${feedBorderClass} ${feedColor.ringBg} ${feedColor.tipText} font-mono font-semibold`}>
+                                        <div className="inline-block px-3 py-1 rounded border-2 border-black text-black font-mono font-semibold" style={feedGradient}>
                                           {feedPairInBinder}
                                         </div>
                                       </TableCell>
                                       <TableCell className="text-center font-mono font-semibold">{circuitPrefix},{circuitNumber}</TableCell>
                                       <TableCell className="text-center">
-                                        <div className={`inline-block px-3 py-1 rounded border-2 ${distBorderClass} ${distColor.ringBg} ${distColor.tipText} font-mono font-semibold`}>
+                                        <div className="inline-block px-3 py-1 rounded border-2 border-black text-black font-mono font-semibold" style={distGradient}>
                                           {distPairInBinder}
                                         </div>
                                       </TableCell>
                                       <TableCell className="text-center font-mono font-semibold">
-                                        <span className={distBinderColor.tipText}>B</span>
-                                        <span className={distBinderColor.ringText}>{distBinder}</span>
+                                        <span className="inline-block px-2 py-0.5 rounded border-2 border-black text-black font-mono font-semibold text-xs" style={distBinderGradient}>
+                                          B{distBinder}
+                                        </span>
                                       </TableCell>
                                       <TableCell className="text-center font-mono text-sm">{distributionCable?.name} - {distributionCable?.fiberCount}</TableCell>
                                     </TableRow>

@@ -391,19 +391,39 @@ export function CircuitManagement({ cable }: CircuitManagementProps) {
     
     const ColoredBinder = ({ num }: { num: number }) => {
       const color = getColorForNumber(num);
+      const tipColorValue = color.tipBg.replace('bg-', '');
+      const ringColorValue = color.ringBg.replace('bg-', '');
+      const gradientStyle = {
+        background: `linear-gradient(to right, 
+          rgb(var(--${tipColorValue})) 0%, 
+          rgb(var(--${tipColorValue})) 33%, 
+          rgb(var(--${ringColorValue})) 33%, 
+          rgb(var(--${ringColorValue})) 67%, 
+          rgb(var(--${tipColorValue})) 67%, 
+          rgb(var(--${tipColorValue})) 100%)`
+      };
       return (
-        <span className="inline-block px-2 py-0.5 rounded font-mono font-semibold text-xs">
-          <span className={color.tipText}>B</span>
-          <span className={color.ringText}>{num}</span>
+        <span className="inline-block px-2 py-0.5 rounded border-2 border-black text-black font-mono font-semibold text-xs" style={gradientStyle}>
+          B{num}
         </span>
       );
     };
     
     const ColoredPair = ({ num }: { num: number }) => {
       const color = getColorForNumber(num);
-      const borderClass = color.tipBg.replace('bg-', 'border-');
+      const tipColorValue = color.tipBg.replace('bg-', '');
+      const ringColorValue = color.ringBg.replace('bg-', '');
+      const gradientStyle = {
+        background: `linear-gradient(to right, 
+          rgb(var(--${tipColorValue})) 0%, 
+          rgb(var(--${tipColorValue})) 33%, 
+          rgb(var(--${ringColorValue})) 33%, 
+          rgb(var(--${ringColorValue})) 67%, 
+          rgb(var(--${tipColorValue})) 67%, 
+          rgb(var(--${tipColorValue})) 100%)`
+      };
       return (
-        <span className={`inline-block px-2 py-0.5 rounded border-2 ${borderClass} ${color.ringBg} ${color.tipText} font-mono font-semibold text-xs`}>
+        <span className="inline-block px-2 py-0.5 rounded border-2 border-black text-black font-mono font-semibold text-xs" style={gradientStyle}>
           {num}
         </span>
       );
